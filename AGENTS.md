@@ -9,7 +9,8 @@ The main libraries it uses are:
 
 # Development
 * Always make sure to call `npm run format:check` and `npm run format` before committing code to ensure that it is properly formatted
-* The website is hosted with vercel. Do not change anything about the deployment configuration unless absolutely required or directly requested.
+* The website is hosted with Cloudflare Pages at https://play.fairy-stockfish.org (configured in the Cloudflare dashboard; `public/_headers` sets the required COOP/COEP headers). Do not change anything about the deployment configuration unless absolutely required or directly requested.
+* `vercel.json` only redirects the old fairyground.vercel.app URL to the new domain.
 * Do not include other chess or chess variant libraries not based on Fairy-Stockfish, since they will not have the same feature set.
 * Only stage and commit files that were added or changed intentionally in scope of the current task.
 * At the end of a task make sure that any changes unrelated to the task and temporary debugging code are reverted.
