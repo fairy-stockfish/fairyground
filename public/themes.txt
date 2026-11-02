@@ -69,7 +69,7 @@
 #"@" works on both piece theme and board theme.
 
 #There may be some bugs in the code reading this file. If you meet one, please report it as an issue at:
-#https://github.com/ianfab/fairyground/issues
+#https://github.com/fairy-stockfish/fairyground/issues
 
 
 *|meridaletters,cburnettletters,lettertiles,letters,blindfold,userdefined|
