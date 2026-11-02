@@ -2,7 +2,7 @@
 
 This is an attempt to have a simple demo and playground for [Fairy-Stockfish](https://github.com/ianfab/Fairy-Stockfish) in the browser, using its [WebAssembly port](https://github.com/ianfab/fairy-stockfish.wasm), its [ffish.js](https://www.npmjs.com/package/ffish-es6) library, and the graphical [chessgroundx](https://github.com/gbtami/chessgroundx) library. It is based on the [demo for Fairy-Stockfish WASM](https://github.com/ianfab/fairy-stockfish-nnue-wasm-demo) and [ffish-test](https://github.com/thearst3rd/ffish-test).
 
-You can see it deployed at: [https://fairyground.vercel.app/](https://fairyground.vercel.app/)
+You can see it deployed at: [https://play.fairy-stockfish.org/](https://play.fairy-stockfish.org/)
 
 The site is a progressive web app with a responsive layout for desktop and mobile: it can be installed from the browser ("Install app" / "Add to home screen") and keeps working offline once the engine and assets have been cached. The user interface is styled by `public/assets/app.css`; UI themes in `public/assets/theme-ui-*.css` only override its design tokens.
 
@@ -161,7 +161,7 @@ Then browse to http://localhost:9999 on the client and if you see \<Engine Manag
 
 The definition of the terms used in this section:
 
-*__Webpage Server__*: The computer that provides the webpage of fairyground. It is the server specified in the URL. For example, https://fairyground.vercel.app
+*__Webpage Server__*: The computer that provides the webpage of fairyground. It is the server specified in the URL. For example, https://play.fairy-stockfish.org
 
 *__Engine Server__*: The computer that runs the fairyground server (a console application) and the binary engines. For example, http://localhost:5015
 
