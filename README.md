@@ -8,7 +8,7 @@ The site is a progressive web app with a responsive layout for desktop and mobil
 
 ## Usage
 
-To get a one-click-to-run version, you can download the executables in the [Latest Build Actions](https://github.com/ianfab/fairyground/actions/workflows/ci.yml?query=event%3Apush+event%3Aworkflow_dispatch) section. (Requires logging in to GitHub)
+To get a one-click-to-run version, you can download the executables in the [Latest Build Actions](https://github.com/fairy-stockfish/fairyground/actions/workflows/ci.yml?query=event%3Apush+event%3Aworkflow_dispatch) section. (Requires logging in to GitHub)
 
 The artifacts may be expired if the latest build happened long ago. In this case please raise an issue to tell maintainers of this repository to re-run build actions.
 
@@ -167,14 +167,14 @@ The definition of the terms used in this section:
 
 *__Client__*: The computer that runs the browser and the UI (a graphical user interface, GUI).
 
-Note: If the engine server and the client are on different computers, please refer to the [previous chapter](https://github.com/ianfab/fairyground#run-engines-remotely) when doing step 4. This guide assumes that the engine server and the client are on the same computer.
+Note: If the engine server and the client are on different computers, please refer to the [previous chapter](https://github.com/fairy-stockfish/fairyground#run-engines-remotely) when doing step 4. This guide assumes that the engine server and the client are on the same computer.
 
 Steps to connect external binary engines:
 
 1. Type the address of the *__webpage server__* in the browser and go to it. You will see the webpage of fairyground.
 2. Run fairyground server. It will be the *__engine server__*. (run `node server.js` in the console or run the executable if you downloaded the release)
 3. Check the *__WebSocket__* port of the engine server. By default it is 5016.
-4. Click \<CONNECT\> button at the top of the page. In the prompt dialog, enter the *__WebSocket__* port of the *__engine server__*. (If the engine server and the client are on different computers, you need to use port forwarding to make this work. See [previous chapter](https://github.com/ianfab/fairyground#run-engines-remotely))
+4. Click \<CONNECT\> button at the top of the page. In the prompt dialog, enter the *__WebSocket__* port of the *__engine server__*. (If the engine server and the client are on different computers, you need to use port forwarding to make this work. See [previous chapter](https://github.com/fairy-stockfish/fairyground#run-engines-remotely))
 5. If connected, you will see \<Engine Management\> button. Click it to load your engines.  Note that all the paths are paths *__on the engine server__*, *__NOT__* the path on the client. The binary executables of the engines need to be placed at respective paths *__on the engine server__*.
 
 ## Make A Release
