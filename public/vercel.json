@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "destination": "https://play.fairy-stockfish.org/:path*",
+      "permanent": true
+    }
+  ]
+}

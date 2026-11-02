@@ -124,6 +124,7 @@ cd ..
 npm install || Error
 npm run build || Error
 
+rm -f ./public/vercel.json
 rm -f ./public/serve.json
 rm -f ./public/_headers
 find ./public -type f -name "original.*" -exec rm -f {} \;
