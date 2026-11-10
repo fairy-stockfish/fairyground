@@ -3085,7 +3085,8 @@ function showWallSquares() {
 function getUsedPieceID(variant, isfischerrandom) {
   console.log("Now testing piece set! You may see a lot of warnings here.");
   let validPieceID = pieces.filter((element) => {
-    return ffish.validateFen(element, variant, isfischerrandom) != -10;
+    let result = ffish.validateFen(element, variant, isfischerrandom);
+    return result != -10 && result != -12;
   });
   return validPieceID;
 }
