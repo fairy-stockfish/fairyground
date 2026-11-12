@@ -1120,6 +1120,8 @@ button.favbtn.on {
   flex-direction: column;
   align-items: center;
   max-width: 100%;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 #chessground-container-div > .cg-wrap.pocket-top,
@@ -1204,7 +1206,7 @@ button.favbtn.on {
 
 #pocket-top {
   display: flex;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
 }
 
 #pocket-top.no-inital-pocket-piece {
@@ -1221,7 +1223,7 @@ button.favbtn.on {
 
 #pocket-bottom {
   display: flex;
-  margin-top: 12px;
+  margin-top: 20px;
 }
 
 #pocket-bottom.no-inital-pocket-piece {

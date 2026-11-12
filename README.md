@@ -4,7 +4,7 @@ This is an attempt to have a simple demo and playground for [Fairy-Stockfish](ht
 
 You can see it deployed at: [https://play.fairy-stockfish.org/](https://play.fairy-stockfish.org/)
 
-The site is a progressive web app with a responsive layout for desktop and mobile: it can be installed from the browser ("Install app" / "Add to home screen") and keeps working offline once the engine and assets have been cached. The user interface is styled by `public/assets/app.css`; UI themes in `public/assets/theme-ui-*.css` only override its design tokens.
+The site is a progressive web app with a responsive layout for desktop and mobile: it can be installed from the browser ("Install app" / "Add to home screen") and keeps working offline once the engine and assets have been cached. The user interface is styled by `public/assets/app.css`; Most UI themes in `public/assets/theme-ui-*.css` only override its design tokens, but some UI themes contains extra styles like gradients which will have extra contents.
 
 ## Usage
 

@@ -40,5 +40,6 @@ materialdark|Dark Material
 fsf|Fairy-Stockfish
 chess|Chess Set
 landscape|Chess Landscape
+sunset|Sunset
 bubbles|Bubbles||particles-bubbles,30
 stars|Star Space||particles-stars,30

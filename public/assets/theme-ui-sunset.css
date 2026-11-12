@@ -1,0 +1,111 @@
+:root {
+  color-scheme: light;
+  --bg: #f6f4ef;
+  --surface: #ffe9c4;
+  --surface2: #fef1d4;
+  --border: #ffb300;
+  --border2: #956800;
+  --text: #b27700;
+  --muted: #6f6a60;
+  --faint: #a39e94;
+  --accent: #ffa200;
+  --accent-hover: #d09e48;
+  --accent-ink: #1a1408;
+  --accent-soft: rgba(224, 164, 58, 0.18);
+  --accent-soft2: rgba(224, 164, 58, 0.32);
+  --good: #3a8a4c;
+  --bad: #b8452f;
+  --warn: #b7791f;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 8px 24px rgba(0, 0, 0, 0.4);
+  --blend-color1: #f0cf91bc;
+  --blend-color2: #f6bfa8bc;
+  --blend-mask-color: #fff6;
+  --text-shadow-style-black: 2px 2px 2px #000, 2px 2px 2px #000, -2px -2px 2px #000, -2px -2px 2px #000, 2px -2px 2px #000, 2px -2px 2px #000, -2px 2px 2px #000, -2px 2px 2px #000;
+  --text-shadow-style-white: 2px 2px 2px #fff, 2px 2px 2px #fff, -2px -2px 2px #fff, -2px -2px 2px #fff, 2px -2px 2px #fff, 2px -2px 2px #fff, -2px 2px 2px #fff, -2px 2px 2px #fff;
+}
+
+#pagebackground {
+  background-image: url("./assets/images/ui/sunset/sunset.avif");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: center;
+}
+
+html {
+  background: transparent;
+}
+
+.topbar,
+.panel,
+.drawer,
+.dialog,
+#moveselectiondialog {
+  background: linear-gradient(to right, var(--blend-color1), var(--blend-color2)), var(--blend-mask-color);
+  background-blend-mode: overlay;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+div.popup {
+  background-color: transparent;
+  background: linear-gradient(to right, var(--blend-color1), var(--blend-color2)), var(--blend-mask-color);
+  background-blend-mode: overlay;
+}
+
+#enginemanagementpopup-background,
+#enginesetuppopup-background,
+#enginesettingspopup-background,
+#loadsavedgamespopup-background {
+  background-image: url("./assets/images/ui/sunset/sunset.avif");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+#enginemanagementpopup,
+#enginesetuppopup,
+#enginesettingspopup,
+#loadsavedgamespopup {
+  background-color: transparent;
+  background: linear-gradient(to right, var(--blend-color1), var(--blend-color2)), var(--blend-mask-color);
+}
+
+button.danger {
+  background: var(--surface);
+}
+
+div.boardnav button.iconbtn:hover {
+  background: var(--accent-soft2);
+}
+
+div.boardnotes {
+  background: var(--surface);
+  border-radius: 0px;
+}
+
+div.playerbar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--rc);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 5px;
+}
+
+#whitetimer,
+#blacktimer {
+  background: var(--surface);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+coord {
+  text-shadow: var(--text-shadow-style-white);
+}
+
+coord.light, coord.dark {
+  text-shadow: none;
+}
+
