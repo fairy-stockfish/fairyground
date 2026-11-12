@@ -706,7 +706,9 @@ wss.on("close", (ws) => {
 const interval = setInterval(function ping() {
   wss.clients.forEach(function each(ws) {
     if (ws.isAlive === false) {
-      console.warn(`[WebSocket Server] A client is no longer alive. Terminating connection.`);
+      console.warn(
+        `[WebSocket Server] A client is no longer alive. Terminating connection.`,
+      );
       ws.terminate();
     }
     ws.isAlive = false;
