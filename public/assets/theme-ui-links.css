@@ -1,0 +1,27 @@
+:root {
+  --bg: #f3f6fb;
+  --surface: #ffffffdc;
+  --surface2: #528cfa1b;
+  --border: #dbe3ef;
+  --border2: #c6d2e3;
+  --text: #16213a;
+  --muted: #5d6b85;
+  --faint: #98a4b8;
+  --accent: #2563eb;
+  --accent2: #1a45a2;
+  --accent-hover: #1d4fd8;
+  --accent-ink: #ffffff;
+  --accent-soft: #dbe7ff;
+  --accent-soft2: #bcd1ff;
+  --button-active: #777;
+  --r: 12px;
+  --rc: 18px;
+  --surface-blend: #ffffffcd;
+}
+
+#enginemanagementpopup,
+#enginesetuppopup,
+#enginesettingspopup,
+#loadsavedgamespopup {
+  background-color: var(--surface-blend);
+}

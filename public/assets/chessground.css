@@ -5,6 +5,10 @@
  * board and pieces displayed!
  */
 
+ .cg-custom-below {
+  display: none !important;
+ }
+
 .cg-wrap {
   width: 640px;
   height: 640px;

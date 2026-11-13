@@ -1134,7 +1134,10 @@ button.favbtn.on {
 #chessground-container-div > .cg-wrap:not(.pocket-top):not(.pocket-bottom) {
   max-width: 100%;
   border-radius: 4px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
+}
+
+cg-board {
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.22);
 }
 
 /* Promotion / gating choice shown on top of the board */

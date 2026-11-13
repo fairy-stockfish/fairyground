@@ -3,7 +3,7 @@
   --bg: #f6f4ef;
   --surface: #ffe9c4;
   --surface2: #fef1d4;
-  --border: #ffb300;
+  --border: #e4a000;
   --border2: #956800;
   --text: #b27700;
   --muted: #6f6a60;
@@ -51,6 +51,8 @@ div.popup {
   background-color: transparent;
   background: linear-gradient(to right, var(--blend-color1), var(--blend-color2)), var(--blend-mask-color);
   background-blend-mode: overlay;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 #enginemanagementpopup-background,
