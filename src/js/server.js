@@ -8,6 +8,7 @@ const WebSocketServer = WebSocket.Server;
 const PathSplitterMatcher = new RegExp("/", "g");
 const JSONSplitterMatcher = new RegExp("(?<=\\:|\\;|\\,)", "g");
 const OutputDirectory = "/public";
+const OutputDirectoryRoot = OutputDirectory + "/";
 
 let port = 5015;
 
@@ -57,7 +58,11 @@ app.use(function (req, res, next) {
           "No suggestions available.",
         ),
       );
-  } else if (req.path == "" || req.path == "/") {
+  } else if (
+    req.path == "" ||
+    req.path == "/" ||
+    req.path == OutputDirectoryRoot
+  ) {
     res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
     res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
     next();
@@ -177,6 +182,11 @@ app.use(function (req, res, next) {
 app.use(OutputDirectory, express.static(OutputDirectory.slice(1)));
 
 app.all("/", function (req, res) {
+  console.log("[HTTP Server] Redirect to index page.");
+  res.redirect(`${OutputDirectory}/index.html`);
+});
+
+app.all(OutputDirectoryRoot, function (req, res) {
   console.log("[HTTP Server] Redirect to index page.");
   res.redirect(`${OutputDirectory}/index.html`);
 });
@@ -705,7 +715,12 @@ wss.on("close", (ws) => {
 
 const interval = setInterval(function ping() {
   wss.clients.forEach(function each(ws) {
-    if (ws.isAlive === false) return ws.terminate();
+    if (ws.isAlive === false) {
+      console.warn(
+        `[WebSocket Server] A client is no longer alive. Terminating connection.`,
+      );
+      ws.terminate();
+    }
     ws.isAlive = false;
     ws.ping(noop);
   });

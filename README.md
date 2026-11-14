@@ -4,11 +4,11 @@ This is an attempt to have a simple demo and playground for [Fairy-Stockfish](ht
 
 You can see it deployed at: [https://play.fairy-stockfish.org/](https://play.fairy-stockfish.org/)
 
-The site is a progressive web app with a responsive layout for desktop and mobile: it can be installed from the browser ("Install app" / "Add to home screen") and keeps working offline once the engine and assets have been cached. The user interface is styled by `public/assets/app.css`; UI themes in `public/assets/theme-ui-*.css` only override its design tokens.
+The site is a progressive web app with a responsive layout for desktop and mobile: it can be installed from the browser ("Install app" / "Add to home screen") and keeps working offline once the engine and assets have been cached. The user interface is styled by `public/assets/app.css`; Most UI themes in `public/assets/theme-ui-*.css` only override its design tokens, but some UI themes contains extra styles like gradients which will have extra contents.
 
 ## Usage
 
-To get a one-click-to-run version, you can download the executables in the [Latest Build Actions](https://github.com/fairy-stockfish/fairyground/actions/workflows/ci.yml?query=event%3Apush+event%3Aworkflow_dispatch) section. (Requires logging in to GitHub)
+To get a one-click-to-run version, you can download the executables in the [Latest Build Actions](https://github.com/fairy-stockfish/fairyground/actions?query=workflow%3ACI+event%3Apush+branch%3Amain) section. (Requires logging in to GitHub)
 
 The artifacts may be expired if the latest build happened long ago. In this case please raise an issue to tell maintainers of this repository to re-run build actions.
 
@@ -104,7 +104,7 @@ If you want to use fairyground to test your experimental Fairy-Stockfish build, 
 
 7. Go to fairyground root directory (The directory containing this README), open your console and run `npm run build` (Linux/macOS) or `npm run buildwithcmd` (Windows).
 
-8. Run `node server.js` in the console, and then go to [http://localhost:5015/public/](http://localhost:5015/public/).
+8. Run `node server.js` in the console, and then go to [http://localhost:5015](http://localhost:5015).
 
 9. The page displayed now is using your version of Fairy-Stockfish, and you can begin your test.
 

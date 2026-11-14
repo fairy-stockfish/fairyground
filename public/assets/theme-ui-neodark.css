@@ -2,21 +2,108 @@
   color-scheme: dark;
   --bg: #0f1420;
   --surface: #171e2e;
-  --surface2: #1f2839;
+  --surface2: #2c3951;
   --border: #283349;
   --border2: #35425c;
   --text: #e8edf8;
   --muted: #98a6c2;
   --faint: #62708c;
   --accent: #5b8cff;
+  --accent2: #1a45a2;
   --accent-hover: #7aa2ff;
-  --accent-ink: #0b1220;
+  --accent-ink: #ffffff;
   --accent-soft: #1c2b4d;
   --accent-soft2: #26407a;
   --good: #5fb573;
   --bad: #e06a52;
   --warn: #d9a03a;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 8px 24px rgba(0, 0, 0, 0.4);
+  --button-active: #999;
   --r: 12px;
   --rc: 18px;
+}
+
+.topbar,
+.panel,
+.drawer,
+.dialog,
+#moveselectiondialog {
+  background: linear-gradient(to bottom, var(--surface), var(--surface2));
+}
+
+div.popup {
+  background-color: transparent;
+  background: linear-gradient(to bottom, var(--surface), var(--surface2));
+}
+
+button, .btn {
+  background: linear-gradient(to bottom, var(--surface), var(--surface2));
+  background-blend-mode: overlay;
+  background-color: transparent;
+}
+
+button:hover,
+.btn:hover {
+  background: linear-gradient(to bottom, var(--surface), var(--surface2));
+  background-color: var(--surface);
+  text-decoration: none;
+  color: var(--text);
+}
+
+button:active {
+  background: linear-gradient(to bottom, var(--surface), var(--surface2));
+  background-color: var(--button-active);
+}
+
+button.primary {
+  background: linear-gradient(to bottom, var(--accent), var(--accent2));
+  border-color: transparent;
+  background-color: transparent;
+  color: var(--accent-ink);
+}
+
+button.primary:hover {
+  background: linear-gradient(to bottom, var(--accent), var(--accent2));
+  background-color: var(--accent-hover);
+}
+
+button.soft {
+  background: linear-gradient(to bottom, var(--accent-soft), var(--accent-soft2));
+  border-color: transparent;
+  background-color: transparent;
+  color: var(--accent);
+}
+
+button.soft:hover {
+  background: linear-gradient(to bottom, var(--accent-soft), var(--accent-soft2));
+  background-color: var(--accent-soft2);
+}
+
+.analysistoggle.on {
+  background: linear-gradient(to bottom, var(--surface), var(--surface2));
+  background-color: var(--accent-soft2);
+  border-color: var(--accent-soft2);
+  color: var(--accent);
+}
+
+select {
+  background-color: transparent;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236f6a60' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>"), linear-gradient(to bottom, var(--surface), var(--surface2));
+  background-repeat: no-repeat;
+  background-position: right 10px center, center;
+}
+
+#enginemanagementpopup-background,
+#enginesetuppopup-background,
+#enginesettingspopup-background,
+#loadsavedgamespopup-background {
+  background: linear-gradient(to bottom, var(--surface), var(--surface2));
+  background-color: transparent;
+}
+
+#enginemanagementpopup,
+#enginesetuppopup,
+#enginesettingspopup,
+#loadsavedgamespopup {
+  background-color: transparent;
 }
