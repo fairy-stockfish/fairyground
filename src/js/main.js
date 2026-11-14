@@ -1716,7 +1716,7 @@ for (i = 0; i < maxmultipvcount; i++) {
 document.dispatchEvent(new Event("onpageload"));
 
 function getEvaluationDescription(eval_num, is_mate) {
-  const better_side = eval_num > 0 ? "First" : (eval_num < 0 ? "Second" : "none");
+  const better_side = eval_num > 0 ? "First" : eval_num < 0 ? "Second" : "none";
   const score = Math.abs(eval_num);
   if (better_side == "none") {
     return "The position is equal";
@@ -1724,34 +1724,25 @@ function getEvaluationDescription(eval_num, is_mate) {
   if (is_mate) {
     if (eval_num == 0) {
       return "The game has ended";
-    }
-    else {
+    } else {
       return `${better_side} mover can win in ${score} move(s)`;
     }
-  }
-  else {
+  } else {
     if (score < 0.2) {
       return "The position is equal";
-    }
-    else if (score < 0.4) {
+    } else if (score < 0.4) {
       return `${better_side} mover is minimally better`;
-    }
-    else if (score < 0.8) {
+    } else if (score < 0.8) {
       return `${better_side} mover is slightly better`;
-    }
-    else if (score < 1.5) {
+    } else if (score < 1.5) {
       return `${better_side} mover is better`;
-    }
-    else if (score < 2.5) {
+    } else if (score < 2.5) {
       return `${better_side} mover is clearly better`;
-    }
-    else if (score < 5) {
+    } else if (score < 5) {
       return `${better_side} mover has a decisive advantage`;
-    }
-    else if (score < 10) {
+    } else if (score < 10) {
       return `${better_side} mover is winning`;
-    }
-    else {
+    } else {
       return `${better_side} mover is clearly winning`;
     }
   }
