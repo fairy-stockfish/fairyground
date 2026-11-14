@@ -203,6 +203,7 @@ const pcheckCounts = document.getElementById("checkcounts");
 const evaluationBar = document.getElementById("evalbarprogress");
 const evalscore = document.getElementById("cp");
 const multipv = document.getElementById("multipv");
+const evalcomment = document.getElementById("evalcomment");
 const evalinfo = document.getElementById("evalinfo");
 const pvinfo = document.getElementById("pvinfo");
 const availablemovelist = document.getElementById("availablemovelist");
@@ -1713,6 +1714,48 @@ for (i = 0; i < maxmultipvcount; i++) {
 }
 
 document.dispatchEvent(new Event("onpageload"));
+
+function getEvaluationDescription(eval_num, is_mate) {
+  const better_side = eval_num > 0 ? "First" : (eval_num < 0 ? "Second" : "none");
+  const score = Math.abs(eval_num);
+  if (better_side == "none") {
+    return "The position is equal";
+  }
+  if (is_mate) {
+    if (eval_num == 0) {
+      return "The game has ended";
+    }
+    else {
+      return `${better_side} mover can win in ${score} move(s)`;
+    }
+  }
+  else {
+    if (score < 0.2) {
+      return "The position is equal";
+    }
+    else if (score < 0.4) {
+      return `${better_side} mover is minimally better`;
+    }
+    else if (score < 0.8) {
+      return `${better_side} mover is slightly better`;
+    }
+    else if (score < 1.5) {
+      return `${better_side} mover is better`;
+    }
+    else if (score < 2.5) {
+      return `${better_side} mover is clearly better`;
+    }
+    else if (score < 5) {
+      return `${better_side} mover has a decisive advantage`;
+    }
+    else if (score < 10) {
+      return `${better_side} mover is winning`;
+    }
+    else {
+      return `${better_side} mover is clearly winning`;
+    }
+  }
+}
 
 function convertChessgroundXKeyToSquare(key) {
   const ranks = [
@@ -4998,7 +5041,8 @@ new Module().then((loadedModule) => {
       }
       let maxdepth = Math.max(...depthlist);
       let maxseldepth = Math.max(...seldepthlist);
-      evalinfo.innerText = `depth ${maxdepth > 0 ? maxdepth : "❓"}/${maxseldepth > 0 ? maxseldepth : "❓"} · ${formatCount(nodeinfo)} nodes · ${formatCount(npsinfo)} n/s · ${formatSecondsShort(timeinfo)}`;
+      evalinfo.textContent = `depth ${maxdepth > 0 ? maxdepth : "❓"}/${maxseldepth > 0 ? maxseldepth : "❓"} · ${formatCount(nodeinfo)} nodes · ${formatCount(npsinfo)} n/s · ${formatSecondsShort(timeinfo)}`;
+      evalinfo.title = `Depth (Average depth): ${maxdepth > 0 ? maxdepth : "❓"}\nSelective Depth (Max depth): ${maxseldepth > 0 ? maxseldepth : "❓"}\nSearched Nodes: ${nodeinfo} positions\nNodes Searched Per Second: ${npsinfo} nodes/s\nTime Elapsed: ${timeinfo} ms`;
     } else if (text.includes("bestmove")) {
       let textparselist = text.split(" ");
       if (board.turn()) {
@@ -5048,32 +5092,37 @@ new Module().then((loadedModule) => {
       let matemoves = multipvrecord[bestpv][1];
       if (isNaN(matemoves) || matemoves == null) {
         evaluationBar.style.width = "50%";
-        evalscore.innerText = "Mate in ❓";
-      } else if (matemoves > 0) {
-        evaluationBar.style.width = "100%";
-        evalscore.innerText = "Mate in " + matemoves.toString();
-      } else if (matemoves < 0) {
-        evaluationBar.style.width = "0%";
-        evalscore.innerText = "Mate in " + (-1 * matemoves).toString();
+        evalscore.textContent = "Mate in ❓";
+        evalcomment.textContent = "The evaluation is invalid";
       } else {
-        if (board.turn()) {
-          evaluationBar.style.width = "0%";
-          evalscore.innerText = "Checkmate";
-        } else {
+        if (matemoves > 0) {
           evaluationBar.style.width = "100%";
-          evalscore.innerText = "Checkmate";
+          evalscore.textContent = "Mate in " + matemoves.toString();
+        } else if (matemoves < 0) {
+          evaluationBar.style.width = "0%";
+          evalscore.textContent = "Mate in " + (-1 * matemoves).toString();
+        } else {
+          if (board.turn()) {
+            evaluationBar.style.width = "0%";
+            evalscore.textContent = "Checkmate";
+          } else {
+            evaluationBar.style.width = "100%";
+            evalscore.textContent = "Checkmate";
+          }
         }
+        evalcomment.textContent = getEvaluationDescription(matemoves, true);
       }
     } else {
       evaluation = multipvrecord[bestpv][1];
       if (isNaN(evaluation) || evaluation == null) {
-        evalscore.innerText = "❓";
+        evalscore.textContent = "❓";
         evaluationBar.style.width = "50%";
+        evalcomment.textContent = "The evaluation is invalid";
       } else {
         if (evaluation > 0) {
-          evalscore.innerText = "+" + evaluation.toFixed(2).toString();
+          evalscore.textContent = "+" + evaluation.toFixed(2).toString();
         } else {
-          evalscore.innerText = evaluation.toFixed(2);
+          evalscore.textContent = evaluation.toFixed(2);
         }
         if (evaluation <= -9.8) {
           evaluationBar.style.width = "1%";
@@ -5083,6 +5132,7 @@ new Module().then((loadedModule) => {
           evaluationBar.style.width =
             parseInt((evaluation * 100 + 1000) / 20).toString() + "%";
         }
+        evalcomment.textContent = getEvaluationDescription(evaluation, false);
       }
     }
     bestmove = multipvrecord[bestpv][2];
