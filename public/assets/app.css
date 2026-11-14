@@ -358,7 +358,8 @@ textarea:disabled {
 
 input:invalid {
   border-color: var(--bad);
-  box-shadow: 0 0 0 2px rgba(184, 69, 47, 0.18);
+  box-shadow: 0 0 0 5px rgba(255, 0, 0, 0.5);
+  color: var(--bad);
 }
 
 input::placeholder {
@@ -1140,6 +1141,10 @@ cg-board {
   box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.22);
 }
 
+.micro cg-board {
+  box-shadow: none;
+}
+
 /* Promotion / gating choice shown on top of the board */
 .cg-wrap .promotion-choice {
   position: absolute;
@@ -1463,6 +1468,7 @@ cg-board {
 .betzaboard {
   display: grid;
   grid-template-columns: repeat(var(--betza-size), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--betza-rows), minmax(0, 1fr));
   width: 100%;
   max-width: 220px;
   aspect-ratio: 1;
@@ -1911,7 +1917,7 @@ button.inioption {
     0 0 1px rgba(0, 0, 0, 0.8);
 }
 
-#evalinfo {
+#evalcomment, #evalinfo {
   white-space: normal;
   font-size: 12px;
   color: var(--muted);
@@ -1972,13 +1978,13 @@ spangameresultmini {
 
 /* engine tab */
 
-.sliders {
+.sliders, .integer-inputs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px 18px;
 }
 
-.sliderrow {
+.sliderrow, .integerrow {
   display: flex;
   flex-direction: column;
   gap: 8px;

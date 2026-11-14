@@ -488,6 +488,7 @@
 
       document.addEventListener("onpageload", () => {
         pageloaded = true;
+        document.getElementById("sannotation").selectedIndex = 2;
         if (uithemesparsed) {
           document.getElementById("setupuithemes").click();
           console.log(
@@ -1909,7 +1910,13 @@
         const openMoveMenu = (element, x, y) => {
           const moveinput = document.getElementById("move");
           const setposition = document.getElementById("setpos");
-          if (!moveinput || !setposition || setposition.disabled) {
+          const isgamestarted = document.getElementById("isgamestarted");
+          if (
+            !moveinput ||
+            !setposition ||
+            setposition.disabled ||
+            (isgamestarted && isgamestarted.checked)
+          ) {
             return;
           }
           moveinput.value = element.moves;
@@ -1936,7 +1943,12 @@
         if (movelist) {
           movelist.addEventListener("click", (event) => {
             const element = event.target.closest(".position-display-label");
-            if (!element || element.moves === undefined) {
+            const isgamestarted = document.getElementById("isgamestarted");
+            if (
+              !element ||
+              element.moves === undefined ||
+              (isgamestarted && isgamestarted.checked)
+            ) {
               return;
             }
             const moveinput = document.getElementById("move");
@@ -1948,10 +1960,10 @@
             setposition.click();
             // The move list click also opens the preview mini board; the
             // main board now shows the position, so close the preview.
-            const miniboard = document.getElementById("chessground-mini");
-            if (miniboard && !miniboard.locked) {
-              miniboard.style.display = "none";
-            }
+            // const miniboard = document.getElementById("chessground-mini");
+            // if (miniboard && !miniboard.locked) {
+            //   miniboard.style.display = "none";
+            // }
           });
           movelist.addEventListener("contextmenu", (event) => {
             const element = event.target.closest(".position-display-label");
@@ -2016,6 +2028,7 @@
         let board_setup_mode = false;
         let advanced_time_control = false;
         let during_play = false;
+        let game_started = false;
         let select_move_dialog = false;
         let in_browser_fsf_hash = 16;
         let in_browser_fsf_skill = 20;
@@ -2066,6 +2079,20 @@
         let varianttypes = [];
 
         let engine_list = [];
+
+        let piece_palette_orientation = "white";
+        let board_orientation = "white";
+
+        let use_integer_inputs = false;
+
+        const default_start_time = 300000;
+        const default_time_increment = 3000;
+        const default_byoyomi_periods = 3;
+        const default_byoyomi_period_length = 30000;
+        const default_timeout_margin = 0;
+        const default_movetime = 500;
+        const default_depth = 12;
+        const default_nodes = 1000000;
 
         document.addEventListener("gameend", (event) => {
           finishGame(event.detail.result, event.detail.reason);
@@ -2316,6 +2343,7 @@
         };
 
         const setVariant = () => {
+          board_orientation = "white";
           play_move = false;
           stop(true);
           const variant = $("#dropdown-variant").value;
@@ -2783,10 +2811,10 @@
 
         const reset = () => {
           review_mode = false;
-          if (board_setup_mode) {
-            board_setup_mode = false;
-            triggerBoardSetupPieceIdentifier(false);
-          }
+          // if (board_setup_mode) {
+          //   board_setup_mode = false;
+          //   triggerBoardSetupPieceIdentifier(false);
+          // }
         };
 
         // const undo = () => {
@@ -4168,9 +4196,11 @@
           if (chessgrounddiv.classList.contains("orientation-white")) {
             fakewrap.classList.remove("orientation-black");
             fakewrap.classList.add("orientation-white");
+            piece_palette_orientation = "white";
           } else if (chessgrounddiv.classList.contains("orientation-black")) {
             fakewrap.classList.remove("orientation-white");
             fakewrap.classList.add("orientation-black");
+            piece_palette_orientation = "black";
           }
           fakeboard.classList.value = fakeboardclasses.join(" ");
           if (board_setup_mode) {
@@ -5319,7 +5349,9 @@
           if (chess960 && chess960.checked != state.chess960) {
             chess960.click();
           }
-          if (state.variant != "") {
+          if (state.variant == "") {
+            selectVariant("chess");
+          } else {
             selectVariant(state.variant);
           }
           if (state.fen == "" && state.moves == "") {
@@ -5469,7 +5501,49 @@
             "[?]",
           );
 
-        const isDarkUITheme = (id) => /dark|stars|bubbles/i.test(id || "");
+        const isDarkUITheme = (id) =>
+          getComputedStyle($(":root")).colorScheme.toLowerCase() == "dark";
+
+        let integer_input_engine_depth = "";
+        let integer_input_engine_movetime = "";
+        let integer_input_engine_nodes = "";
+        let integer_input_engine_hash = "";
+        let integer_input_engine_threads = "";
+        let integer_input_engine_multipv = "";
+
+        // let integer_input_white_start_time = default_start_time;
+        // let integer_input_white_time_increment = default_time_increment;
+        // let integer_input_white_byoyomi_periods = default_byoyomi_periods;
+        // let integer_input_white_byoyomi_period_length = default_byoyomi_period_length;
+        // let integer_input_white_timeout_margin = default_timeout_margin;
+        // let integer_input_white_depth = default_depth;
+        // let integer_input_white_movetime = default_movetime;
+        // let integer_input_white_nodes = default_nodes;
+        // let integer_input_black_start_time = default_start_time;
+        // let integer_input_black_time_increment = default_time_increment;
+        // let integer_input_black_byoyomi_periods = default_byoyomi_periods;
+        // let integer_input_black_byoyomi_period_length = default_byoyomi_period_length;
+        // let integer_input_black_timeout_margin = default_timeout_margin;
+        // let integer_input_black_depth = default_depth;
+        // let integer_input_black_movetime = default_movetime;
+        // let integer_input_black_nodes = default_nodes;
+
+        let integer_input_white_start_time = "";
+        let integer_input_white_time_increment = "";
+        let integer_input_white_byoyomi_periods = "";
+        let integer_input_white_byoyomi_period_length = "";
+        let integer_input_white_timeout_margin = "";
+        let integer_input_white_depth = "";
+        let integer_input_white_movetime = "";
+        let integer_input_white_nodes = "";
+        let integer_input_black_start_time = "";
+        let integer_input_black_time_increment = "";
+        let integer_input_black_byoyomi_periods = "";
+        let integer_input_black_byoyomi_period_length = "";
+        let integer_input_black_timeout_margin = "";
+        let integer_input_black_depth = "";
+        let integer_input_black_movetime = "";
+        let integer_input_black_nodes = "";
 
         // Switch infinite analysis on or off from anywhere in the UI.
         // Turning it on releases the players and the time control (they
@@ -5538,67 +5612,149 @@
         };
         const timeSliders = (side, mode, tc) =>
           m("div.sliders.timecontrol", { hidden: mode == "infinite" }, [
-            sliderRow(
-              mode == "time per move" ? "Time per move" : "Start time",
-              formatClock(startTimeSteps[tc.start]),
-              0,
-              startTimeSteps.length - 1,
-              tc.start,
-              (value) => {
-                tc.start = value;
-              },
-              "The time at the beginning of the game.",
-            ),
-            mode == "tournament"
-              ? sliderRow(
-                  "Increment",
-                  formatClock(incrementSteps[tc.gain]),
+            use_integer_inputs
+              ? integerInput(
+                  mode == "time per move"
+                    ? "Time per move (ms)"
+                    : "Start time (ms)",
+                  "1",
+                  "",
+                  default_start_time,
+                  (value) => {
+                    if (side == "white") {
+                      integer_input_white_start_time = value;
+                    } else {
+                      integer_input_black_start_time = value;
+                    }
+                  },
+                  "The time in milliseconds at the beginning of the game.",
+                  true,
+                )
+              : sliderRow(
+                  mode == "time per move" ? "Time per move" : "Start time",
+                  formatClock(startTimeSteps[tc.start]),
                   0,
-                  incrementSteps.length - 1,
-                  tc.gain,
+                  startTimeSteps.length - 1,
+                  tc.start,
                   (value) => {
-                    tc.gain = value;
+                    tc.start = value;
                   },
-                  "Time added after every move.",
+                  "The time at the beginning of the game.",
+                ),
+            m("div", { hidden: mode != "tournament" }, [
+              use_integer_inputs
+                ? integerInput(
+                    "Time Increment (ms)",
+                    "0",
+                    "",
+                    default_time_increment,
+                    (value) => {
+                      if (side == "white") {
+                        integer_input_white_time_increment = value;
+                      } else {
+                        integer_input_black_time_increment = value;
+                      }
+                    },
+                    "Time in milliseconds added after every move.",
+                    true,
+                  )
+                : sliderRow(
+                    "Increment",
+                    formatClock(incrementSteps[tc.gain]),
+                    0,
+                    incrementSteps.length - 1,
+                    tc.gain,
+                    (value) => {
+                      tc.gain = value;
+                    },
+                    "Time added after every move.",
+                  ),
+            ]),
+            m("div", { hidden: mode != "byoyomi" }, [
+              use_integer_inputs
+                ? integerInput(
+                    "Byo-yomi period length (ms)",
+                    "0",
+                    "",
+                    default_byoyomi_period_length,
+                    (value) => {
+                      if (side == "white") {
+                        integer_input_white_byoyomi_period_length = value;
+                      } else {
+                        integer_input_black_byoyomi_period_length = value;
+                      }
+                    },
+                    "Length in milliseconds of each byo-yomi period.",
+                    true,
+                  )
+                : sliderRow(
+                    "Byo-yomi period",
+                    formatClock(byoyomiSteps[tc.byoyomi]),
+                    0,
+                    byoyomiSteps.length - 1,
+                    tc.byoyomi,
+                    (value) => {
+                      tc.byoyomi = value;
+                    },
+                    "Length of each byo-yomi period.",
+                  ),
+            ]),
+            m("div", { hidden: mode != "byoyomi" }, [
+              use_integer_inputs
+                ? integerInput(
+                    "Byo-yomi period count",
+                    "1",
+                    "",
+                    default_byoyomi_periods,
+                    (value) => {
+                      if (side == "white") {
+                        integer_input_white_byoyomi_periods = value;
+                      } else {
+                        integer_input_black_byoyomi_periods = value;
+                      }
+                    },
+                    "Number of byo-yomi periods.",
+                    true,
+                  )
+                : sliderRow(
+                    "Periods",
+                    tc.periods,
+                    1,
+                    10,
+                    tc.periods,
+                    (value) => {
+                      tc.periods = value;
+                    },
+                    "Number of byo-yomi periods.",
+                  ),
+            ]),
+            use_integer_inputs
+              ? integerInput(
+                  "Timeout margin (ms)",
+                  "0",
+                  "",
+                  default_timeout_margin,
+                  (value) => {
+                    if (side == "white") {
+                      integer_input_white_timeout_margin = value;
+                    } else {
+                      integer_input_black_timeout_margin = value;
+                    }
+                  },
+                  "The time may be exceeded by this much milliseconds before this side loses on time.",
+                  true,
                 )
-              : null,
-            mode == "byoyomi"
-              ? sliderRow(
-                  "Byo-yomi period",
-                  formatClock(byoyomiSteps[tc.byoyomi]),
+              : sliderRow(
+                  "Timeout margin",
+                  formatClock(marginSteps[tc.margin]),
                   0,
-                  byoyomiSteps.length - 1,
-                  tc.byoyomi,
+                  marginSteps.length - 1,
+                  tc.margin,
                   (value) => {
-                    tc.byoyomi = value;
+                    tc.margin = value;
                   },
-                  "Length of each byo-yomi period.",
-                )
-              : null,
-            mode == "byoyomi"
-              ? sliderRow(
-                  "Periods",
-                  tc.periods,
-                  1,
-                  10,
-                  tc.periods,
-                  (value) => {
-                    tc.periods = value;
-                  },
-                  "Number of byo-yomi periods.",
-                )
-              : null,
-            sliderRow(
-              "Timeout margin",
-              formatClock(marginSteps[tc.margin]),
-              0,
-              marginSteps.length - 1,
-              tc.margin,
-              (value) => {
-                tc.margin = value;
-              },
-              "The time may be exceeded by this much before the side loses on time.",
-            ),
+                  "The time may be exceeded by this much before this side loses on time.",
+                ),
           ]);
 
         const allLimitsInfinite = () =>
@@ -5628,6 +5784,46 @@
               disabled: stockfish_state != "READY",
               oninput: (e) => {
                 onchange(parseInt(e.target.value));
+              },
+            }),
+          ]);
+
+        //min, max, value can be strings
+        const integerInput = (
+          label,
+          min,
+          max,
+          value,
+          onchangefn,
+          help,
+          usedefault = false,
+        ) =>
+          m("div.integerrow", { title: help }, [
+            m("input[type=number]", {
+              placeholder: label,
+              min: isNaN(parseInt(min)) ? "-2147483648" : min,
+              max: isNaN(parseInt(max)) ? "2147483647" : max,
+              step: "1",
+              //defaultValue: value,
+              disabled: stockfish_state != "READY",
+              onchange: (e) => {
+                let number = parseInt(e.target.value);
+                if (!usedefault && e.target.value) {
+                  onchangefn("");
+                } else if (isNaN(number)) {
+                  if (isNaN(parseInt(e.target.defaultValue))) {
+                    onchangefn("");
+                  } else {
+                    onchangefn(parseInt(e.target.defaultValue));
+                  }
+                }
+                if (number < parseInt(e.target.min)) {
+                  onchangefn(parseInt(e.target.min));
+                } else if (number > parseInt(e.target.max)) {
+                  onchangefn(parseInt(e.target.max));
+                } else {
+                  onchangefn(parseInt(number));
+                }
               },
             }),
           ]);
@@ -5706,6 +5902,8 @@
           force_stop();
           game_over = true;
           game_outcome = { result: result, reason: reason };
+          document.getElementById("isgamestarted").checked =
+            game_started = false;
           m.redraw();
         };
 
@@ -5715,6 +5913,8 @@
           } else {
             finishGame("*", "aborted");
           }
+          document.getElementById("isgamestarted").checked =
+            game_started = false;
         };
 
         const outcomeText = (outcome) => {
@@ -5775,10 +5975,31 @@
             if (!clock && isEngineSide(game)) {
               limit =
                 game.mode == "depth"
-                  ? { type: "depth", value: depthSteps[game.depth] }
+                  ? {
+                      type: "depth",
+                      value: use_integer_inputs
+                        ? side == "white"
+                          ? integer_input_white_depth || default_depth
+                          : integer_input_black_depth || default_depth
+                        : depthSteps[game.depth],
+                    }
                   : game.mode == "nodes"
-                    ? { type: "nodes", value: nodesSteps[game.nodes] }
-                    : { type: "movetime", value: movetimeSteps[game.movetime] };
+                    ? {
+                        type: "nodes",
+                        value: use_integer_inputs
+                          ? side == "white"
+                            ? integer_input_white_nodes || default_nodes
+                            : integer_input_black_nodes || default_nodes
+                          : nodesSteps[game.nodes],
+                      }
+                    : {
+                        type: "movetime",
+                        value: use_integer_inputs
+                          ? side == "white"
+                            ? integer_input_white_movetime || default_movetime
+                            : integer_input_black_movetime || default_movetime
+                          : movetimeSteps[game.movetime],
+                      };
             }
             if (side == "white") {
               engine_limit_white = limit;
@@ -5859,6 +6080,8 @@
               document.getElementById("randommovergo").click();
             }
           }, 250);
+          document.getElementById("isgamestarted").checked =
+            game_started = true;
         };
 
         const endGame = () => {
@@ -5962,7 +6185,7 @@
               choices.push({
                 value,
                 selected,
-                title: `${promoted ? "Promoted " : ""}${white ? "white" : "black"} ${letter}`,
+                title: `${promoted ? "Promoted " : ""}${white ? "white" : "black"} ${letter} (${white ? "First" : "Second"} mover)`,
                 pieceClass: `${promoted ? "p" : ""}${letter.toLowerCase()}-piece ${white ? "white" : "black"}`,
               });
             }
@@ -6271,10 +6494,19 @@
           // ---------------- board column ----------------
           const boardcol = m("section.boardcol#boardcol", [
             m("div.playerbar.top", [
-              m("div.avatar", icon(playerIcon(game_black), 16)),
+              m(
+                "div.avatar",
+                board_orientation == "white"
+                  ? icon(playerIcon(game_black), 16)
+                  : icon(playerIcon(game_white), 16),
+              ),
               m("div", [
-                m("p.name", playerName(game_black, "Black")),
-                m("p.sub", "Second mover"),
+                board_orientation == "white"
+                  ? m("p.name", playerName(game_black, "Black"))
+                  : m("p.name", playerName(game_white, "White")),
+                board_orientation == "white"
+                  ? m("p.sub", "Second mover")
+                  : m("p.sub", "First mover"),
               ]),
             ]),
             m(
@@ -6299,10 +6531,19 @@
               m("div.cg-wrap.pocket-bottom", [m("div#pocket-bottom")]),
             ]),
             m("div.playerbar.bottom", [
-              m("div.avatar", icon(playerIcon(game_white), 16)),
+              m(
+                "div.avatar",
+                board_orientation == "white"
+                  ? icon(playerIcon(game_white), 16)
+                  : icon(playerIcon(game_black), 16),
+              ),
               m("div", [
-                m("p.name", playerName(game_white, "White")),
-                m("p.sub", "First mover"),
+                board_orientation == "white"
+                  ? m("p.name", playerName(game_white, "White"))
+                  : m("p.name", playerName(game_black, "Black")),
+                board_orientation == "white"
+                  ? m("p.sub", "First mover")
+                  : m("p.sub", "Second mover"),
               ]),
             ]),
             m(
@@ -6458,11 +6699,23 @@
                     type: "button",
                     title: "Flip board",
                     onclick: () => {
-                      if (board_setup_mode) {
-                        setTimeout(() => {
+                      setTimeout(() => {
+                        if (board_setup_mode) {
                           triggerBoardSetupPieceIdentifier(false);
-                        }, 50);
-                      }
+                        }
+                        let chessgrounddiv =
+                          document.getElementById("chessground-board");
+                        if (
+                          chessgrounddiv.classList.contains("orientation-white")
+                        ) {
+                          board_orientation = "white";
+                        } else if (
+                          chessgrounddiv.classList.contains("orientation-black")
+                        ) {
+                          board_orientation = "black";
+                        }
+                        m.redraw();
+                      }, 50);
                     },
                   },
                   icon("flip"),
@@ -6678,6 +6931,7 @@
               ]),
               m("div#evaluation", { hidden: !analysis_mode }, [
                 m("div#evalbar", [m("p#cp", "0.00"), m("div#evalbarprogress")]),
+                m("p#evalcomment", ""),
                 m("p#evalinfo", ""),
                 m("p#pvinfo", ""),
               ]),
@@ -6722,7 +6976,11 @@
               ]),
               m("p#positioninfo", ""),
               m("p#checkcounts"),
-              m("p#label-pgn"),
+              m("p#label-pgn", {
+                oncontextmenu: (e) => {
+                  e.preventDefault();
+                },
+              }),
               m(
                 "div#pgn-operation-container.pgntools",
                 { hidden: !advanced_pgn_mode },
@@ -7008,7 +7266,7 @@
                   }),
                 ]),
 
-                m("div.sliders", [
+                m("div.sliders", { hidden: use_integer_inputs }, [
                   sliderRow(
                     "Lines",
                     engine_multipv,
@@ -7043,7 +7301,7 @@
                     "Size of the engine's hash table.",
                   ),
                 ]),
-                m("div.sliders", [
+                m("div.sliders", { hidden: use_integer_inputs }, [
                   sliderRow(
                     "Depth",
                     limitLabel(depthSteps, engine_depth_index, (v) =>
@@ -7085,6 +7343,71 @@
                   ),
                 ]),
 
+                m("div.integer-inputs", { hidden: !use_integer_inputs }, [
+                  integerInput(
+                    "Depth",
+                    "1",
+                    "255",
+                    "",
+                    (value) => {
+                      integer_input_engine_depth = value;
+                    },
+                    "Stop the analysis at this depth.",
+                  ),
+                  integerInput(
+                    "Move Time (ms)",
+                    "1",
+                    "",
+                    "",
+                    (value) => {
+                      integer_input_engine_movetime = value;
+                    },
+                    "Stop the analysis after this time in milliseconds.",
+                  ),
+                  integerInput(
+                    "Nodes",
+                    "1",
+                    "",
+                    "",
+                    (value) => {
+                      integer_input_engine_nodes = value;
+                    },
+                    "Stop the analysis after this many nodes.",
+                  ),
+                ]),
+                m("div.integer-inputs", { hidden: !use_integer_inputs }, [
+                  integerInput(
+                    "MultiPV",
+                    "1",
+                    "500",
+                    "",
+                    (value) => {
+                      integer_input_engine_multipv = value;
+                    },
+                    "Number of principal variations (engine lines) shown.",
+                  ),
+                  integerInput(
+                    "Threads",
+                    "1",
+                    "512",
+                    "",
+                    (value) => {
+                      integer_input_engine_threads = value;
+                    },
+                    "Parallel search threads of in browser Fairy-Stockfish.",
+                  ),
+                  integerInput(
+                    "Hash",
+                    "1",
+                    "33554432",
+                    "",
+                    (value) => {
+                      integer_input_engine_hash = value;
+                    },
+                    "Size of the engine's hash table in megabytes.",
+                  ),
+                ]),
+
                 m(
                   "p.hint",
                   'These settings apply to the engine analysis. Players, strength and time control of a game are chosen in "New game".',
@@ -7106,35 +7429,47 @@
                 m("div.hiddeninputs", [
                   m("input[type=number]#depth", {
                     hidden: true,
-                    value: limitValue(depthSteps, engine_depth_index),
+                    value: use_integer_inputs
+                      ? integer_input_engine_depth
+                      : limitValue(depthSteps, engine_depth_index),
                     min: 1,
                     max: 255,
                   }),
                   m("input[type=number]#movetime", {
                     hidden: true,
-                    value: limitValue(movetimeSteps, engine_movetime_index),
-                    min: 0,
+                    value: use_integer_inputs
+                      ? integer_input_engine_movetime
+                      : limitValue(movetimeSteps, engine_movetime_index),
+                    min: 1,
                   }),
                   m("input[type=number]#nodes", {
                     hidden: true,
-                    value: limitValue(nodesSteps, engine_nodes_index),
+                    value: use_integer_inputs
+                      ? integer_input_engine_nodes
+                      : limitValue(nodesSteps, engine_nodes_index),
                     min: 1,
                   }),
                   m("input[type=number]#threads", {
                     hidden: true,
-                    value: engine_threads,
+                    value: use_integer_inputs
+                      ? integer_input_engine_threads
+                      : engine_threads,
                     min: 1,
                     max: 512,
                   }),
                   m("input[type=number]#hash", {
                     hidden: true,
-                    value: hashSteps[engine_hash_index],
+                    value: use_integer_inputs
+                      ? integer_input_engine_hash
+                      : hashSteps[engine_hash_index],
                     min: 1,
                     max: 33554432,
                   }),
                   m("input[type=number]#multipv", {
                     hidden: true,
-                    value: engine_multipv,
+                    value: use_integer_inputs
+                      ? integer_input_engine_multipv
+                      : engine_multipv,
                     min: 1,
                     max: 500,
                   }),
@@ -7602,6 +7937,9 @@
                     { hidden: true },
                     "Advanced PGN Cross Domain Handler (internal)",
                   ),
+                  m("input[type=checkbox]#isgamestarted", {
+                    hidden: true,
+                  }),
                 ]),
                 ,
                 m("input[type=checkbox]#isenginematchmode", {
@@ -7851,7 +8189,8 @@
                   "button.sm.primary",
                   {
                     type: "button",
-                    title: "Leave the board editor and use the position",
+                    title:
+                      'Leave board editor. Changes made in "board editor" section that are not applied will be discarded.',
                     onclick: () => {
                       leaveSetup();
                     },
@@ -8104,9 +8443,10 @@
                               "div.palettewrap",
                               { class: pieceThemeClasses() },
                               [
-                                m("div.cg-wrap", [
-                                  m("piece", { class: choice.pieceClass }),
-                                ]),
+                                m(
+                                  `div.cg-wrap.orientation-${piece_palette_orientation}`,
+                                  [m("piece", { class: choice.pieceClass })],
+                                ),
                               ],
                             ),
                       ),
@@ -8515,7 +8855,9 @@
               ]),
               m(
                 "div.betzaboard",
-                { style: `--betza-size:${preview.size}` },
+                {
+                  style: `--betza-size:${preview.size}; --betza-rows:${Math.ceil(rows.length / preview.size)};`,
+                },
                 rows,
               ),
               m("div.betzalegend", [
@@ -8836,21 +9178,54 @@
                   ["hourglass", "Hourglass"],
                   ["byoyomi", "Byo-yomi"],
                 ];
-            const limitRow =
-              game.mode == "depth"
-                ? sliderRow(
-                    "Depth",
-                    String(depthSteps[game.depth]),
-                    0,
-                    depthSteps.length - 1,
-                    game.depth,
-                    (value) => {
-                      game.depth = value;
-                    },
-                    "Search depth per move.",
-                  )
-                : game.mode == "nodes"
-                  ? sliderRow(
+            const limitRow = m("div", [
+              m("div", { hidden: game.mode != "depth" }, [
+                use_integer_inputs
+                  ? integerInput(
+                      "Depth",
+                      "1",
+                      "255",
+                      default_depth,
+                      (value) => {
+                        if (side == "white") {
+                          integer_input_white_depth = value;
+                        } else {
+                          integer_input_black_depth = value;
+                        }
+                      },
+                      "Search depth per move.",
+                      true,
+                    )
+                  : sliderRow(
+                      "Depth",
+                      String(depthSteps[game.depth]),
+                      0,
+                      depthSteps.length - 1,
+                      game.depth,
+                      (value) => {
+                        game.depth = value;
+                      },
+                      "Search depth per move.",
+                    ),
+              ]),
+              m("div", { hidden: game.mode != "nodes" }, [
+                use_integer_inputs
+                  ? integerInput(
+                      "Nodes",
+                      "1",
+                      "",
+                      default_nodes,
+                      (value) => {
+                        if (side == "white") {
+                          integer_input_white_nodes = value;
+                        } else {
+                          integer_input_black_nodes = value;
+                        }
+                      },
+                      "Searched nodes per move.",
+                      true,
+                    )
+                  : sliderRow(
                       "Nodes",
                       formatNodes(nodesSteps[game.nodes]),
                       0,
@@ -8860,20 +9235,38 @@
                         game.nodes = value;
                       },
                       "Searched nodes per move.",
+                    ),
+              ]),
+              m("div", { hidden: game.mode != "movetime" }, [
+                use_integer_inputs
+                  ? integerInput(
+                      "Move Time (ms)",
+                      "1",
+                      "",
+                      default_movetime,
+                      (value) => {
+                        if (side == "white") {
+                          integer_input_white_movetime = value;
+                        } else {
+                          integer_input_black_movetime = value;
+                        }
+                      },
+                      "Thinking time per move in milliseconds.",
+                      true,
                     )
-                  : game.mode == "movetime"
-                    ? sliderRow(
-                        "Time per move",
-                        formatSeconds(movetimeSteps[game.movetime]),
-                        0,
-                        movetimeSteps.length - 1,
-                        game.movetime,
-                        (value) => {
-                          game.movetime = value;
-                        },
-                        "Thinking time per move.",
-                      )
-                    : null;
+                  : sliderRow(
+                      "Time per move",
+                      formatSeconds(movetimeSteps[game.movetime]),
+                      0,
+                      movetimeSteps.length - 1,
+                      game.movetime,
+                      (value) => {
+                        game.movetime = value;
+                      },
+                      "Thinking time per move.",
+                    ),
+              ]),
+            ]);
             return m("div.sidesetup", [
               m("span.sect", label),
               m("div.nums.two", [
@@ -9136,27 +9529,37 @@
                     timeSliders("white", white_timer_type, tc_white),
                     m("input[type=number]#whitestarttime", {
                       hidden: true,
-                      value: startTimeSteps[tc_white.start],
+                      value: use_integer_inputs
+                        ? integer_input_white_start_time
+                        : startTimeSteps[tc_white.start],
                       min: 1,
                     }),
                     m("input[type=number]#whitetimegain", {
                       hidden: true,
-                      value: incrementSteps[tc_white.gain],
+                      value: use_integer_inputs
+                        ? integer_input_white_time_increment
+                        : incrementSteps[tc_white.gain],
                       min: 0,
                     }),
                     m("input[type=number]#whitebyoyomitime", {
                       hidden: true,
-                      value: byoyomiSteps[tc_white.byoyomi],
+                      value: use_integer_inputs
+                        ? integer_input_white_byoyomi_period_length
+                        : byoyomiSteps[tc_white.byoyomi],
                       min: 1,
                     }),
                     m("input[type=number]#whitebyoyomiperiodcount", {
                       hidden: true,
-                      value: tc_white.periods,
+                      value: use_integer_inputs
+                        ? integer_input_white_byoyomi_periods
+                        : tc_white.periods,
                       min: 1,
                     }),
                     m("input[type=number]#whitetimemargin", {
                       hidden: true,
-                      value: marginSteps[tc_white.margin],
+                      value: use_integer_inputs
+                        ? integer_input_white_timeout_margin
+                        : marginSteps[tc_white.margin],
                       min: 0,
                     }),
                   ]),
@@ -9226,27 +9629,37 @@
                     timeSliders("black", black_timer_type, tc_black),
                     m("input[type=number]#blackstarttime", {
                       hidden: true,
-                      value: startTimeSteps[tc_black.start],
+                      value: use_integer_inputs
+                        ? integer_input_black_start_time
+                        : startTimeSteps[tc_black.start],
                       min: 1,
                     }),
                     m("input[type=number]#blacktimegain", {
                       hidden: true,
-                      value: incrementSteps[tc_black.gain],
+                      value: use_integer_inputs
+                        ? integer_input_black_time_increment
+                        : incrementSteps[tc_black.gain],
                       min: 0,
                     }),
                     m("input[type=number]#blackbyoyomitime", {
                       hidden: true,
-                      value: byoyomiSteps[tc_black.byoyomi],
+                      value: use_integer_inputs
+                        ? integer_input_black_byoyomi_period_length
+                        : byoyomiSteps[tc_black.byoyomi],
                       min: 1,
                     }),
                     m("input[type=number]#blackbyoyomiperiodcount", {
                       hidden: true,
-                      value: tc_black.periods,
+                      value: use_integer_inputs
+                        ? integer_input_black_byoyomi_periods
+                        : tc_black.periods,
                       min: 1,
                     }),
                     m("input[type=number]#blacktimemargin", {
                       hidden: true,
-                      value: marginSteps[tc_black.margin],
+                      value: use_integer_inputs
+                        ? integer_input_black_timeout_margin
+                        : marginSteps[tc_black.margin],
                       min: 0,
                     }),
                   ]),
@@ -9817,7 +10230,7 @@
                         ),
                         m(
                           "option",
-                          { value: "SAN", selected: true },
+                          { value: "SAN" },
                           "Standard/Short Algebraic Notation (SAN)",
                         ),
                         m(
@@ -10036,6 +10449,22 @@
                       checked: adjudicate,
                       onclick: () => {
                         adjudicate = !adjudicate;
+                      },
+                    }),
+                  ]),
+                  m("div.setting", [
+                    m(
+                      "span",
+                      {
+                        title:
+                          'When checked, engine analysis parameters and timer settings in "New Game" will use integer input boxes instead of sliders for better granularity.',
+                      },
+                      "Integer input for engine / timer parameters",
+                    ),
+                    m("input[type=checkbox]#check-granularity", {
+                      checked: use_integer_inputs,
+                      onclick: () => {
+                        use_integer_inputs = !use_integer_inputs;
                       },
                     }),
                   ]),
@@ -10552,9 +10981,10 @@
                     type: "button",
                     title:
                       "Click to move the position on mini board to main board for further investigation.",
-                    disabled: during_play || during_engine_match,
+                    disabled:
+                      during_play || during_engine_match || game_started,
                     onclick: () => {
-                      if (during_play || during_engine_match) {
+                      if (during_play || during_engine_match || game_started) {
                         return;
                       }
                       const chessgroundmini =
