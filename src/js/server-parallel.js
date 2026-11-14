@@ -8,6 +8,8 @@ const WebSocketServer = WebSocket.Server;
 const PathSplitterMatcher = new RegExp("/", "g");
 const JSONSplitterMatcher = new RegExp("(?<=\\:|\\;|\\,)", "g");
 const OutputDirectory = "/public";
+const OutputDirectoryRoot = OutputDirectory + "/";
+
 let port = 5015;
 
 function GenerateErrorPage(
@@ -180,7 +182,7 @@ if (cluster.isMaster) {
             "No suggestions available.",
           ),
         );
-    } else if (req.path == "" || req.path == "/") {
+    } else if (req.path == "" || req.path == "/" || req.path == OutputDirectoryRoot) {
       res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
       res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
       next();
@@ -306,6 +308,11 @@ if (cluster.isMaster) {
     console.log("[HTTP Server Worker %d] Redirect to index page.", process.pid);
     res.redirect(`${OutputDirectory}/index.html`);
   });
+
+  app.all(OutputDirectoryRoot, function (req, res) {
+    console.log("[HTTP Server Worker %d] Redirect to index page.", process.pid);
+    res.redirect(`${OutputDirectory}/index.html`);
+  });  
 
   const httpserver = app.listen(port, function () {
     let host = httpserver.address().address;
