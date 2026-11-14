@@ -111,6 +111,7 @@ const buttonFinalPosition = document.getElementById("finalposition");
 const buttonCurrentPosition = document.getElementById("currentposition");
 const buttonSpecifiedPosition = document.getElementById("specifiedposition");
 const inputHalfMoveNumber = document.getElementById("gotomovenum");
+const isGameStarted = document.getElementById("isgamestarted");
 const buttonGameStart = document.getElementById("gamestart");
 const playWhite = document.getElementById("playwhite");
 const playBlack = document.getElementById("playblack");
@@ -932,6 +933,9 @@ class GameTree {
     this.UpdateHistory();
     this.MoveTree.RootNode.NextNodes = [];
     this.CurrentMove = this.MoveTree.RootNode;
+    this.MoveTree.RootNode.Move.TextAfter = "";
+    this.MoveTree.RootNode.Move.TextBefore = "";
+    this.MoveTree.RootNode.Move.Symbol = [];
     this.AddHistory();
   }
 
@@ -1548,7 +1552,13 @@ class GameTree {
           moveelement.classList.add("current-move");
           moveelement.title = "This is current move.";
         }
-        moveelement.onclick = onMoveElementClicked;
+        ((this_element) => {
+          this_element.onclick = () => {
+            if (isGameStarted.checked) {
+              onMoveElementClicked(this_element);
+            }
+          };
+        })(moveelement);
         movesparagraph.appendChild(moveelement);
         if (tokens[i].Move.TextAfter) {
           parsedtext = moveutil.ParseTextActions(tokens[i].Move.TextAfter);
@@ -2473,18 +2483,25 @@ function parseBoardMarkers(boardmarkers, movercolor) {
 }
 
 //This function must be called as onclick() function of a HTMLElement
-function onMoveElementClicked() {
+function onMoveElementClicked(moveelement) {
+  let this_element = moveelement;
+  if (!(moveelement instanceof HTMLElement)) {
+    this_element = this;
+  }
   chessground_mini.set({
-    fen: this.fenstr,
+    fen: this_element.fenstr,
     orientation: chessground.state.orientation,
-    turnColor: this.moveturn,
-    check: this.checked,
-    lastMove: this.lastmove,
+    turnColor: this_element.moveturn,
+    check: this_element.checked,
+    lastMove: this_element.lastmove,
     notation: chessground.state.notation,
   });
   chessground_mini.setAutoShapes([]);
-  if (this.boardmarkers) {
-    let parsedmarkers = parseBoardMarkers(this.boardmarkers, this.moveturn);
+  if (this_element.boardmarkers) {
+    let parsedmarkers = parseBoardMarkers(
+      this_element.boardmarkers,
+      this_element.moveturn,
+    );
     //The arrows can be drawed correctly only when the board is visible, so we have to wait for the browser rendering the board.
     window.setTimeout(() => {
       highlightMoveOnBoard(
@@ -2497,11 +2514,11 @@ function onMoveElementClicked() {
       );
     }, 100);
   }
-  chessgroundMini.startingfen = this.startingfen;
-  chessgroundMini.moves = this.moves;
-  //console.log(this.fenstr, this.moveturn, this.checked, this.lastmove);
+  chessgroundMini.startingfen = this_element.startingfen;
+  chessgroundMini.moves = this_element.moves;
+  //console.log(this_element.fenstr, this_element.moveturn, this_element.checked, this_element.lastmove);
   if (chessgroundMini.style.display == "none") {
-    const rect = this.getBoundingClientRect();
+    const rect = this_element.getBoundingClientRect();
     const mainrect = divMain.getBoundingClientRect();
     let chessgroundminirect = chessgroundMini.getBoundingClientRect();
     while (chessgroundminirect.width == 0) {
@@ -2538,7 +2555,7 @@ function onMoveElementClicked() {
       chessgroundMini.style.display = "";
     }, 25);
   }
-  if (this.gameresult != "*") {
+  if (this_element.gameresult != "*") {
     let elem = document.getElementById("gameresultcontainermini");
     while (elem) {
       chessgroundMiniBoardWrapper.removeChild(elem);
@@ -2564,7 +2581,7 @@ function onMoveElementClicked() {
     //let wrapperrect = chessgroundMiniBoardWrapper.getBoundingClientRect();
 
     //let chessgroundminirect = chessgroundMini.getBoundingClientRect();
-    spangameresultmini.innerText = this.gameresult;
+    spangameresultmini.innerText = this_element.gameresult;
     //spangameresultmini.style.left = `${(operationrect.width / chessgroundminirect.width + wrapperrect.width / 2 / chessgroundminirect.width) * 100}%`;
     //spangameresultmini.style.top = "50%";
     div.appendChild(spangameresultmini);

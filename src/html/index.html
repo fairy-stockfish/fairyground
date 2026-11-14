@@ -488,6 +488,7 @@
 
       document.addEventListener("onpageload", () => {
         pageloaded = true;
+        document.getElementById("sannotation").selectedIndex = 2;
         if (uithemesparsed) {
           document.getElementById("setupuithemes").click();
           console.log(
@@ -1909,7 +1910,13 @@
         const openMoveMenu = (element, x, y) => {
           const moveinput = document.getElementById("move");
           const setposition = document.getElementById("setpos");
-          if (!moveinput || !setposition || setposition.disabled) {
+          const isgamestarted = document.getElementById("isgamestarted");
+          if (
+            !moveinput ||
+            !setposition ||
+            setposition.disabled ||
+            (isgamestarted && isgamestarted.checked)
+          ) {
             return;
           }
           moveinput.value = element.moves;
@@ -1936,7 +1943,12 @@
         if (movelist) {
           movelist.addEventListener("click", (event) => {
             const element = event.target.closest(".position-display-label");
-            if (!element || element.moves === undefined) {
+            const isgamestarted = document.getElementById("isgamestarted");
+            if (
+              !element ||
+              element.moves === undefined ||
+              (isgamestarted && isgamestarted.checked)
+            ) {
               return;
             }
             const moveinput = document.getElementById("move");
@@ -1948,10 +1960,10 @@
             setposition.click();
             // The move list click also opens the preview mini board; the
             // main board now shows the position, so close the preview.
-            const miniboard = document.getElementById("chessground-mini");
-            if (miniboard && !miniboard.locked) {
-              miniboard.style.display = "none";
-            }
+            // const miniboard = document.getElementById("chessground-mini");
+            // if (miniboard && !miniboard.locked) {
+            //   miniboard.style.display = "none";
+            // }
           });
           movelist.addEventListener("contextmenu", (event) => {
             const element = event.target.closest(".position-display-label");
@@ -2016,6 +2028,7 @@
         let board_setup_mode = false;
         let advanced_time_control = false;
         let during_play = false;
+        let game_started = false;
         let select_move_dialog = false;
         let in_browser_fsf_hash = 16;
         let in_browser_fsf_skill = 20;
@@ -2066,6 +2079,8 @@
         let varianttypes = [];
 
         let engine_list = [];
+
+        let piece_palette_orientation = "white";
 
         document.addEventListener("gameend", (event) => {
           finishGame(event.detail.result, event.detail.reason);
@@ -2783,10 +2798,10 @@
 
         const reset = () => {
           review_mode = false;
-          if (board_setup_mode) {
-            board_setup_mode = false;
-            triggerBoardSetupPieceIdentifier(false);
-          }
+          // if (board_setup_mode) {
+          //   board_setup_mode = false;
+          //   triggerBoardSetupPieceIdentifier(false);
+          // }
         };
 
         // const undo = () => {
@@ -4168,9 +4183,11 @@
           if (chessgrounddiv.classList.contains("orientation-white")) {
             fakewrap.classList.remove("orientation-black");
             fakewrap.classList.add("orientation-white");
+            piece_palette_orientation = "white";
           } else if (chessgrounddiv.classList.contains("orientation-black")) {
             fakewrap.classList.remove("orientation-white");
             fakewrap.classList.add("orientation-black");
+            piece_palette_orientation = "black";
           }
           fakeboard.classList.value = fakeboardclasses.join(" ");
           if (board_setup_mode) {
@@ -5706,6 +5723,8 @@
           force_stop();
           game_over = true;
           game_outcome = { result: result, reason: reason };
+          document.getElementById("isgamestarted").checked =
+            game_started = false;
           m.redraw();
         };
 
@@ -5715,6 +5734,8 @@
           } else {
             finishGame("*", "aborted");
           }
+          document.getElementById("isgamestarted").checked =
+            game_started = false;
         };
 
         const outcomeText = (outcome) => {
@@ -5859,6 +5880,8 @@
               document.getElementById("randommovergo").click();
             }
           }, 250);
+          document.getElementById("isgamestarted").checked =
+            game_started = true;
         };
 
         const endGame = () => {
@@ -5962,7 +5985,7 @@
               choices.push({
                 value,
                 selected,
-                title: `${promoted ? "Promoted " : ""}${white ? "white" : "black"} ${letter}`,
+                title: `${promoted ? "Promoted " : ""}${white ? "white" : "black"} ${letter} (${white ? "First" : "Second"} mover)`,
                 pieceClass: `${promoted ? "p" : ""}${letter.toLowerCase()}-piece ${white ? "white" : "black"}`,
               });
             }
@@ -7602,6 +7625,9 @@
                     { hidden: true },
                     "Advanced PGN Cross Domain Handler (internal)",
                   ),
+                  m("input[type=checkbox]#isgamestarted", {
+                    hidden: true,
+                  }),
                 ]),
                 ,
                 m("input[type=checkbox]#isenginematchmode", {
@@ -7851,7 +7877,8 @@
                   "button.sm.primary",
                   {
                     type: "button",
-                    title: "Leave the board editor and use the position",
+                    title:
+                      'Leave board editor. Changes made in "board editor" section that are not applied will be discarded.',
                     onclick: () => {
                       leaveSetup();
                     },
@@ -8104,9 +8131,10 @@
                               "div.palettewrap",
                               { class: pieceThemeClasses() },
                               [
-                                m("div.cg-wrap", [
-                                  m("piece", { class: choice.pieceClass }),
-                                ]),
+                                m(
+                                  `div.cg-wrap.orientation-${piece_palette_orientation}`,
+                                  [m("piece", { class: choice.pieceClass })],
+                                ),
                               ],
                             ),
                       ),
@@ -8515,7 +8543,9 @@
               ]),
               m(
                 "div.betzaboard",
-                { style: `--betza-size:${preview.size}` },
+                {
+                  style: `--betza-size:${preview.size}; --betza-rows:${Math.ceil(rows.length / preview.size)};`,
+                },
                 rows,
               ),
               m("div.betzalegend", [
@@ -9817,7 +9847,7 @@
                         ),
                         m(
                           "option",
-                          { value: "SAN", selected: true },
+                          { value: "SAN" },
                           "Standard/Short Algebraic Notation (SAN)",
                         ),
                         m(
@@ -10552,9 +10582,10 @@
                     type: "button",
                     title:
                       "Click to move the position on mini board to main board for further investigation.",
-                    disabled: during_play || during_engine_match,
+                    disabled:
+                      during_play || during_engine_match || game_started,
                     onclick: () => {
-                      if (during_play || during_engine_match) {
+                      if (during_play || during_engine_match || game_started) {
                         return;
                       }
                       const chessgroundmini =

@@ -1463,6 +1463,7 @@ cg-board {
 .betzaboard {
   display: grid;
   grid-template-columns: repeat(var(--betza-size), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--betza-rows), minmax(0, 1fr));
   width: 100%;
   max-width: 220px;
   aspect-ratio: 1;
