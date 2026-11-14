@@ -58,7 +58,11 @@ app.use(function (req, res, next) {
           "No suggestions available.",
         ),
       );
-  } else if (req.path == "" || req.path == "/" || req.path == OutputDirectoryRoot) {
+  } else if (
+    req.path == "" ||
+    req.path == "/" ||
+    req.path == OutputDirectoryRoot
+  ) {
     res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
     res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
     next();
