@@ -91,7 +91,7 @@ khans|khans|
 shinobiplus|shinobiplus|
 
 kyotoshogi|kyoto|
-shogi|portella2kanji|shogiboard
+shogi|portella2kanji,ryoko1kanji|shogiboard
 minishogi|@shogi|minishogiboard
 cannonshogi|cannonshogi|cannonshogiboard
 torishogi|torishogi|torishogiboard
