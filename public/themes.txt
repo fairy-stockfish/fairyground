@@ -98,6 +98,7 @@ torishogi|torishogi|torishogiboard
 gorogoro|@shogi|gorogoroboard
 gorogoroplus|@shogi|@gorogoro
 dobutsu|dobutsu|dobutsuboard
+checkshogi|@shogi|@shogi
 
 xiangqi|x2dhanzi,wikim|xiangqiboard
 xiangqihouse|@xiangqi|@xiangqi
