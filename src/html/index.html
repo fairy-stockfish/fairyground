@@ -1075,29 +1075,60 @@
       };
 
       const isSupported = () => {
-        if (typeof WebAssembly !== "object") return false;
-        const source = Uint8Array.from([
-          0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 7, 8,
-          1, 4, 116, 101, 115, 116, 0, 0, 10, 15, 1, 13, 0, 65, 0, 253, 17, 65,
-          0, 253, 17, 253, 186, 1, 11,
-        ]);
-        if (
-          typeof WebAssembly.validate !== "function" ||
-          !WebAssembly.validate(source)
-        )
-          return false;
-        if (typeof Atomics !== "object") return false;
+        let error_information = [];
+        if (typeof WebAssembly !== "object") {
+          error_information.push(
+            "WebAssembly is not available in current browser environment.",
+          );
+        } else {
+          const source = Uint8Array.from([
+            0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 7,
+            8, 1, 4, 116, 101, 115, 116, 0, 0, 10, 15, 1, 13, 0, 65, 0, 253, 17,
+            65, 0, 253, 17, 253, 186, 1, 11,
+          ]);
+          if (
+            typeof WebAssembly.validate !== "function" ||
+            !WebAssembly.validate(source)
+          ) {
+            error_information.push(
+              "WebAssembly.validate is not available in current browser environment, or WebAssembly.validate fails to recognize a valid WASM.",
+            );
+          }
+        }
+        if (typeof Atomics !== "object") {
+          error_information.push(
+            "Atomics is not available in current browser environment.",
+          );
+        }
         if (typeof SharedArrayBuffer !== "function") {
-          console.log("SharedArrayBuffer not enabled!");
-          return false;
+          error_information.push(
+            "SharedArrayBuffer is not available in current browser environment.",
+          );
         }
         if (typeof FileReader === "undefined") {
-          return false;
+          error_information.push(
+            "FileReader is not available in current browser environment.",
+          );
         }
         if (typeof WebSocket === "undefined") {
-          return false;
+          error_information.push(
+            "WebSocket is not available in current browser environment.",
+          );
         }
-        return true;
+        if (typeof localStorage === "undefined") {
+          error_information.push(
+            "localStorage is not available in current browser environment.",
+          );
+        }
+        if (typeof Worker === "undefined") {
+          error_information.push(
+            "Worker is not available in current browser environment.",
+          );
+        }
+        return {
+          supported: error_information.length == 0,
+          error_messages: error_information,
+        };
       };
 
       const RequestProgress = ({ attrs: { url, onFinishDownload } }) => {
@@ -11616,9 +11647,29 @@
         return { oninit, view };
       };
 
-      if (!isSupported()) {
-        window.alert(
-          "Your browser is not supported. For more information, please take a look at https://github.com/hi-ogawa/Stockfish/wiki.",
+      const support_condition = isSupported();
+      if (!support_condition.supported) {
+        let query = new URLSearchParams();
+        query.append("title", "Browser Not Supported");
+        query.append(
+          "text",
+          "Your browser is not supported for the following reason(s):\n\n" +
+            support_condition.error_messages.join("\n\n") +
+            "\n\nRecommendations:\n1. Use up-to-date Chrome, Edge or Firefox browser to open this page.\n2. This webpage cannot be opened directly from file explorer. You need to set up a http server to acces it.\n3.Make sure that you have set the following response headers on the http server:\nCross-Origin-Opener-Policy: same-origin\nCross-Origin-Embedder-Policy: require-corp",
+        );
+        let error_page_path = window.location.pathname;
+        if (error_page_path.endsWith("/")) {
+          error_page_path += "error.html";
+        } else {
+          error_page_path = error_page_path.replace("index.html", "");
+          if (error_page_path.endsWith("/")) {
+            error_page_path += "error.html";
+          } else {
+            error_page_path += "/error.html";
+          }
+        }
+        window.location.replace(
+          `${window.location.protocol}//${window.location.host}${error_page_path}?${query.toString()}`,
         );
       } else {
         m.mount($("#root"), App);

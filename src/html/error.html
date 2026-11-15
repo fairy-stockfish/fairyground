@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#1f7a86" />
+    <title>Error · fairyground</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="./assets/images/app/logo.png" />
+    <link rel="stylesheet" href="assets/app.css" />
+    <script>
+      // Apply the UI theme saved by the playground (default dark).
+      (function () {
+        var theme = null;
+        try {
+          theme = localStorage.getItem("UserSelectedUITheme");
+        } catch (e) {}
+        if (!theme || !/^[A-Za-z0-9_-]+$/.test(theme)) {
+          theme = "dark";
+        }
+        document.write(
+          '<link rel="stylesheet" href="assets/theme-ui-' + theme + '.css" />',
+        );
+      })();
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const params = new URLSearchParams(window.location.search);
+        const title = params.get("title");
+        const text = params.get("text");
+        document.getElementById("title").textContent = title || "Error";
+        document.getElementById("text").textContent =
+          text ||
+          "There is an error in fairyground. The page cannot be loaded.";
+      });
+    </script>
+    <style>
+      .error {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 28px 20px 60px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .error h1 {
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+      }
+
+      .error h2 {
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-top: 10px;
+      }
+    </style>
+    <base target="_blank" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <a class="brand" href="./" target="_self">
+          <img
+            class="mark"
+            src="./assets/images/app/logo.png"
+            alt=""
+            width="30"
+            height="30"
+          />
+          <span class="text">fairyground</span>
+        </a>
+        <nav class="topactions">
+          <a
+            class="btn ghost"
+            href="https://github.com/fairy-stockfish/fairyground"
+            >GitHub</a
+          >
+        </nav>
+      </header>
+      <section class="error">
+        <h1 id="title">Error</h1>
+        <pre id="text"></pre>
+      </section>
+    </main>
+  </body>
+</html>
