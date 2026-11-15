@@ -5472,6 +5472,7 @@
             "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12",
           install:
             "M12 3v12M8 11l4 4 4-4M3 17v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2",
+          dice: "m 7,4.5 a 3,3 0 0 0 -3,3 v 10 a 3,3 0 0 0 3,3 h 10 a 3,3 0 0 0 3,-3 v -10 a 3,3 0 0 0 -3,-3 z M 8,10 a 1.5,1.5 0 1 1 0,-3 1.5,1.5 0 0 1 0,3 m 8,0 a 1.5,1.5 0 1 1 0,-3 1.5,1.5 0 0 1 0,3 m 1.5,6.5 a 1.5,1.5 0 1 1 -3,0 1.5,1.5 0 0 1 3,0 M 8,18 a 1.5,1.5 0 1 1 0,-3 1.5,1.5 0 0 1 0,3",
         };
 
         const icon = (name, size) => {
@@ -10584,18 +10585,22 @@
                     }),
                   ]),
                   m("div.row", [
-                    m("label#label-showmovediv.toggle", [
-                      m("input[type=checkbox]#showmovediv", {
-                        checked: select_move_dialog,
-                        disabled: review_mode || board_setup_mode,
-                        onclick: () => {
-                          select_move_dialog = !select_move_dialog;
-                        },
-                      }),
-                      m("span", "Show moves dialog"),
-                    ]),
-                    helpButton(
-                      "If you cannot make your move on the board (For example, ATAXX drops), you can open this dialog to make the move.",
+                    m(
+                      "label#label-showmovediv.toggle",
+                      {
+                        title:
+                          "If you cannot make your move on the board, you can open this dialog to make the move.",
+                      },
+                      [
+                        m("input[type=checkbox]#showmovediv", {
+                          checked: select_move_dialog,
+                          disabled: review_mode || board_setup_mode,
+                          onclick: () => {
+                            select_move_dialog = !select_move_dialog;
+                          },
+                        }),
+                        m("span", "Show moves dialog"),
+                      ],
                     ),
                   ]),
                   m("div.field", [
@@ -10837,20 +10842,35 @@
             m("div#moveselectiondialog", { hidden: !select_move_dialog }, [
               m("div#moveslectdiv", [
                 m("p", "Moves"),
-                m("select#availablemovelist.sm", [
-                  m("option", { value: "" }, "--SELECT MOVE--"),
-                ]),
+                m(
+                  "select#availablemovelist.sm",
+                  { title: "Select search result here." },
+                  [m("option", { value: "" }, "--SELECT MOVE--")],
+                ),
                 m("input[type=text]#movesearchfilter", {
                   placeholder: "Search UCI move...",
                   maxlength: 9999,
+                  title:
+                    "Input the UCI move string or part of it that you want to search.",
                 }),
-                m("label#label-regexp1.toggle", [
-                  m("input[type=checkbox]#regexp1.box", {
-                    disabled: review_mode || board_setup_mode,
-                  }),
-                  m("span", "Regular Expression"),
-                ]),
-                m("button#searchmove.sm", { type: "button" }, "Search Moves"),
+                m(
+                  "label#label-regexp1.toggle",
+                  { title: "Use regular expression to match moves." },
+                  [
+                    m("input[type=checkbox]#regexp1.box", {
+                      disabled: review_mode || board_setup_mode,
+                    }),
+                    m("span", "Regular Expression"),
+                  ],
+                ),
+                m(
+                  "button#searchmove.sm",
+                  {
+                    type: "button",
+                    title: "Click to search moves with search filters.",
+                  },
+                  "Search Moves",
+                ),
               ]),
               m("div#movefilters", [
                 m("p#searchresultinfo", "Click <Search Moves> to search!"),
@@ -10902,13 +10922,31 @@
                 m("div.row", [
                   m(
                     "button#makemove.sm.primary",
-                    { type: "button" },
+                    {
+                      type: "button",
+                      title: "Make the selected move on the board.",
+                    },
                     "Make Move",
                   ),
                   m(
                     "button#highlightmove.sm",
-                    { type: "button" },
+                    {
+                      type: "button",
+                      title:
+                        "Highlight the selected move on the board using yellow markers.",
+                    },
                     "Highlight Move (Yellow Marks)",
+                  ),
+                  m(
+                    "button#closemovedialog.sm",
+                    {
+                      type: "button",
+                      title: "Close move selection dialog.",
+                      onclick: () => {
+                        document.getElementById("showmovediv").click();
+                      },
+                    },
+                    "Close",
                   ),
                 ]),
               ]),

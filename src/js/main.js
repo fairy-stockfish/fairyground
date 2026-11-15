@@ -5218,10 +5218,17 @@ new Module().then((loadedModule) => {
     while (availablemovelist.length > 1) {
       availablemovelist.removeChild(availablemovelist[1]);
     }
+    let notationindex = simplenotations.indexOf(
+      dropdownNotationSystem[dropdownNotationSystem.selectedIndex].value,
+    );
+    let notation = ffish.Notation.SAN;
+    if (notationindex >= 0) {
+      notation = ffishnotationobjects[notationindex];
+    }
     moves.forEach((val) => {
       let opt = document.createElement("option");
       opt.value = val;
-      opt.text = `${val} (${board.sanMove(val)})`;
+      opt.text = `${val} (${board.sanMove(val, notation)})`;
       availablemovelist.appendChild(opt);
     });
     if (moves.length < 1) {
