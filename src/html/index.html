@@ -525,10 +525,16 @@
           });
 
         setTimeout(() => {
-          document.getElementById("sannotation").selectedIndex = parseInt(localStorage.getItem("SanNotation")) || 2;
-          document.getElementById("sannotation").dispatchEvent(new Event("change"));
-          document.getElementById("boardcoordinate").selectedIndex = parseInt(localStorage.getItem("BoardCoordinate")) || 0;
-          document.getElementById("boardcoordinate").dispatchEvent(new Event("change"));
+          document.getElementById("sannotation").selectedIndex =
+            parseInt(localStorage.getItem("SanNotation")) || 2;
+          document
+            .getElementById("sannotation")
+            .dispatchEvent(new Event("change"));
+          document.getElementById("boardcoordinate").selectedIndex =
+            parseInt(localStorage.getItem("BoardCoordinate")) || 0;
+          document
+            .getElementById("boardcoordinate")
+            .dispatchEvent(new Event("change"));
           if (localStorage.getItem("InnerCoordinate") == "true") {
             document.getElementById("check-innercoordinate").click();
           }
@@ -541,8 +547,11 @@
           if (localStorage.getItem("UseIntegerInput") == "true") {
             document.getElementById("check-granularity").click();
           }
-          document.getElementById("range-volume").value = localStorage.getItem("SoundVolume") || 1;
-          document.getElementById("range-volume").dispatchEvent(new Event("change"));
+          document.getElementById("range-volume").value =
+            localStorage.getItem("SoundVolume") || 1;
+          document
+            .getElementById("range-volume")
+            .dispatchEvent(new Event("change"));
         }, 500);
 
         let chessgroundmini = document.getElementById("chessground-mini");
@@ -2035,6 +2044,50 @@
         }
       });
 
+      const getVariantTheme = (variant, is_board_theme) => {
+        let stored_data = is_board_theme
+          ? localStorage.getItem("UserSelectedBoardTheme")
+          : localStorage.getItem("UserSelectedPieceTheme");
+        let theme_str = stored_data || "{}";
+        let parsed_json = {};
+        try {
+          parsed_json = JSON.parse(theme_str);
+        } catch (e) {
+          parsed_json = {};
+        }
+        let result = parsed_json[variant];
+        if (typeof result == "string") {
+          return result;
+        } else {
+          return null;
+        }
+      };
+
+      const setVariantTheme = (variant, theme_name, is_board_theme) => {
+        let stored_data = is_board_theme
+          ? localStorage.getItem("UserSelectedBoardTheme")
+          : localStorage.getItem("UserSelectedPieceTheme");
+        let theme_str = stored_data || "{}";
+        let parsed_json = {};
+        try {
+          parsed_json = JSON.parse(theme_str);
+        } catch (e) {
+          parsed_json = {};
+        }
+        parsed_json[variant] = theme_name;
+        if (is_board_theme) {
+          localStorage.setItem(
+            "UserSelectedBoardTheme",
+            JSON.stringify(parsed_json),
+          );
+        } else {
+          localStorage.setItem(
+            "UserSelectedPieceTheme",
+            JSON.stringify(parsed_json),
+          );
+        }
+      };
+
       const App = () => {
         let stockfish = null;
         let stockfish_state = "INIT"; // 'READY', 'FAILED'
@@ -2367,17 +2420,13 @@
         const playerColor = (scheme, side) => {
           if (scheme == "chess") {
             return side == "white" ? "White" : "Black";
-          }
-          else if (scheme == "janggi") {
+          } else if (scheme == "janggi") {
             return side == "white" ? "Blue" : "Red";
-          }
-          else if (scheme == "shogi") {
+          } else if (scheme == "shogi") {
             return side == "white" ? "Black" : "White";
-          }
-          else if (scheme == "xiangqi") {
+          } else if (scheme == "xiangqi") {
             return side == "white" ? "Red" : "Black";
-          }
-          else {
+          } else {
             return "Unknown Color";
           }
         };
@@ -3845,113 +3894,98 @@
           stop(true);
         };
 
-        const changePieces = (onlyChangeWhenInvalid) => {
-          let index = 0;
-          let themename = "";
-          let classes = [];
-          let DOMListValue;
-          const el = document.getElementById("chessground-container-div");
-          const chessgroundmini = document.getElementById(
-            "chessground-mini-container-div",
+        const initPieceTheme = () => {
+          const variant = document.getElementById("dropdown-variant").value;
+          const chessground = document.getElementById(
+            "chessground-container-div",
           );
-          index = themes[0].indexOf($("#dropdown-variant").value);
-          if (index < 0 || $("#dropdown-variant").value == "") {
+          let index = themes[0].indexOf(variant);
+          let theme_name = "";
+          let available_themes = [];
+          let DOMListValue;
+          let stored_theme = getVariantTheme(variant, false);
+          if (index < 0 || variant == "") {
             index = themes[0].indexOf("");
           }
           if (index < 0) {
-            themename = "default";
+            theme_name = "default";
           } else {
-            classes = themes[1][index];
-            if (classes.length < 1) {
-              classes = themes[1][themes[0].indexOf("")];
+            available_themes = themes[1][index];
+            if (available_themes.length == 0) {
+              available_themes = themes[1][themes[0].indexOf("")];
             }
           }
-          DOMListValue = el.classList.value.split(" ");
-          if (classes.length > 0) {
-            index = classes.indexOf(DOMListValue[1]) + 1;
-            if (onlyChangeWhenInvalid) {
-              if (index != 0) {
-                console.log("No need to change piece.");
-                updateThemeDropdowns(DOMListValue[1], null);
-                return;
-              }
-            }
-            if (index >= classes.length) {
-              index = 0;
-            }
-            themename = classes[index];
+          if (stored_theme && available_themes.includes(stored_theme)) {
+            console.log(
+              `Using stored piece theme preference for variant "${variant}": ${stored_theme}`,
+            );
+            changePieceSet(stored_theme, false);
           } else {
-            themename = "default";
+            DOMListValue = chessground.classList.value.split(" ");
+            if (available_themes.length > 0) {
+              // index = available_themes.indexOf(DOMListValue[1]) + 1;
+              // if (index != 0) {
+              //   console.log("No need to change pieces.");
+              //   updateThemeDropdowns(DOMListValue[1], null);
+              //   return;
+              // }
+              // if (index >= available_themes.length) {
+              //   index = 0;
+              // }
+              // theme_name = available_themes[index];
+              theme_name = available_themes[0];
+            } else {
+              theme_name = "default";
+            }
+            changePieceSet(theme_name, false);
           }
-          DOMListValue[1] = themename;
-          chessgroundmini.classList.value = el.classList.value =
-            DOMListValue.join(" ");
-          document.dispatchEvent(
-            new CustomEvent("themechange", {
-              detail: { piece: DOMListValue[1], board: DOMListValue[0] },
-            }),
-          );
-          console.log(`Piece theme: ${themename}`);
-          updateThemeDropdowns(themename, null);
-          if (board_setup_mode) {
-            triggerBoardSetupPieceIdentifier(false);
-          }
-          //const activeIndex = classes.findIndex((c) => el.classList.contains(c));
-          //const nextIndex = (activeIndex + 1) % classes.length;
-          //el.classList.replace(classes[activeIndex], classes[nextIndex]);
         };
 
-        const changeBoard = (onlyChangeWhenInvalid) => {
-          let index = 0;
-          let boardthemename = "";
-          let classes = [];
-          let DOMListValue;
-          const el = document.getElementById("chessground-container-div");
-          const chessgroundmini = document.getElementById(
-            "chessground-mini-container-div",
+        const initBoardTheme = (onlyChangeWhenInvalid) => {
+          const variant = document.getElementById("dropdown-variant").value;
+          const chessground = document.getElementById(
+            "chessground-container-div",
           );
-          index = themes[0].indexOf($("#dropdown-variant").value);
-          if (index < 0 || $("#dropdown-variant").value == "") {
+          let index = themes[0].indexOf(variant);
+          let theme_name = "";
+          let available_themes = [];
+          let DOMListValue;
+          let stored_theme = getVariantTheme(variant, true);
+          if (index < 0 || variant == "") {
             index = themes[0].indexOf("");
           }
           if (index < 0) {
-            boardthemename = "defaultboard";
+            theme_name = "defaultboard";
           } else {
-            classes = themes[2][index];
-            if (classes.length < 1) {
-              classes = themes[2][themes[0].indexOf("")];
+            available_themes = themes[2][index];
+            if (available_themes.length == 0) {
+              available_themes = themes[2][themes[0].indexOf("")];
             }
           }
-          DOMListValue = el.classList.value.split(" ");
-          if (classes.length > 0) {
-            index = classes.indexOf(DOMListValue[0]) + 1;
-            if (onlyChangeWhenInvalid) {
-              if (index != 0) {
-                console.log("No need to change board.");
-                updateThemeDropdowns(null, DOMListValue[0]);
-                return;
-              }
-            }
-            if (index >= classes.length) {
-              index = 0;
-            }
-            boardthemename = classes[index];
+          if (stored_theme && available_themes.includes(stored_theme)) {
+            console.log(
+              `Using stored board theme preference for variant "${variant}": ${stored_theme}`,
+            );
+            changeBoardSet(stored_theme, false);
           } else {
-            boardthemename = "defaultboard";
+            DOMListValue = chessground.classList.value.split(" ");
+            if (available_themes.length > 0) {
+              // index = available_themes.indexOf(DOMListValue[0]) + 1;
+              // if (index != 0) {
+              //   console.log("No need to change board.");
+              //   updateThemeDropdowns(null, DOMListValue[0]);
+              //   return;
+              // }
+              // if (index >= available_themes.length) {
+              //   index = 0;
+              // }
+              // theme_name = available_themes[index];
+              theme_name = available_themes[0];
+            } else {
+              theme_name = "defaultboard";
+            }
+            changeBoardSet(theme_name, false);
           }
-          DOMListValue[0] = boardthemename;
-          chessgroundmini.classList.value = el.classList.value =
-            DOMListValue.join(" ");
-          document.dispatchEvent(
-            new CustomEvent("themechange", {
-              detail: { piece: DOMListValue[1], board: DOMListValue[0] },
-            }),
-          );
-          console.log(`Board theme: ${boardthemename}`);
-          updateThemeDropdowns(null, boardthemename);
-          //const activeIndex = classes.findIndex((c) => el.classList.contains(c));
-          //const nextIndex = (activeIndex + 1) % classes.length;
-          //el.classList.replace(classes[activeIndex], classes[nextIndex]);
         };
 
         const setupThemeDropdowns = () => {
@@ -4405,7 +4439,7 @@
           return str.length === 1 && str.match(/[a-z]/i);
         }
 
-        function changePieceSet(piece_set) {
+        function changePieceSet(piece_set, save_to_local_storage) {
           const el = document.getElementById("chessground-container-div");
           const chessgroundmini = document.getElementById(
             "chessground-mini-container-div",
@@ -4423,9 +4457,16 @@
           if (board_setup_mode) {
             triggerBoardSetupPieceIdentifier(false);
           }
+          if (save_to_local_storage) {
+            setVariantTheme(
+              document.getElementById("dropdown-variant").value,
+              piece_set,
+              false,
+            );
+          }
         }
 
-        function changeBoardSet(board_set) {
+        function changeBoardSet(board_set, save_to_local_storage) {
           const el = document.getElementById("chessground-container-div");
           const chessgroundmini = document.getElementById(
             "chessground-mini-container-div",
@@ -4440,6 +4481,13 @@
             }),
           );
           updateThemeDropdowns(null, board_set);
+          if (save_to_local_storage) {
+            setVariantTheme(
+              document.getElementById("dropdown-variant").value,
+              board_set,
+              true,
+            );
+          }
         }
 
         function changeUI(ui_id, save_to_local_storage, change_canvas) {
@@ -4693,7 +4741,7 @@
           return dropdown ? dropdown.value : "";
         };
         const variantDisplayName = (id) =>
-          id == "" ? "Chess" : getVariantName(id, true, false);
+          id == "" ? "Loading..." : getVariantName(id, true, false);
         const variantTypeLabel = (type) =>
           type == NOT_CLASSIFIED || !type ? "Other" : type;
         const positionVariantsFor = (id) => {
@@ -6362,7 +6410,7 @@
                       "span.type",
                       variantTypeLabel(
                         currentVariantId() == ""
-                          ? getVariantType("chess")
+                          ? "please wait..."
                           : getVariantType(currentVariantId()),
                       ),
                     ),
@@ -6546,8 +6594,20 @@
               ),
               m("div", [
                 board_orientation == "white"
-                  ? m("p.name", playerName(game_black, playerColor(mover_color_scheme, "black")))
-                  : m("p.name", playerName(game_white, playerColor(mover_color_scheme, "white"))),
+                  ? m(
+                      "p.name",
+                      playerName(
+                        game_black,
+                        playerColor(mover_color_scheme, "black"),
+                      ),
+                    )
+                  : m(
+                      "p.name",
+                      playerName(
+                        game_white,
+                        playerColor(mover_color_scheme, "white"),
+                      ),
+                    ),
                 board_orientation == "white"
                   ? m("p.sub", "Second mover")
                   : m("p.sub", "First mover"),
@@ -6583,8 +6643,20 @@
               ),
               m("div", [
                 board_orientation == "white"
-                  ? m("p.name", playerName(game_white, playerColor(mover_color_scheme, "white")))
-                  : m("p.name", playerName(game_black, playerColor(mover_color_scheme, "black"))),
+                  ? m(
+                      "p.name",
+                      playerName(
+                        game_white,
+                        playerColor(mover_color_scheme, "white"),
+                      ),
+                    )
+                  : m(
+                      "p.name",
+                      playerName(
+                        game_black,
+                        playerColor(mover_color_scheme, "black"),
+                      ),
+                    ),
                 board_orientation == "white"
                   ? m("p.sub", "First mover")
                   : m("p.sub", "Second mover"),
@@ -7799,8 +7871,8 @@
                       hidden: true,
                       onclick: () => {
                         setupThemeDropdowns();
-                        changePieces(true);
-                        changeBoard(true);
+                        initPieceTheme();
+                        initBoardTheme();
                       },
                     },
                     "Initialize Themes (internal)",
@@ -10128,6 +10200,7 @@
                               $("#dropdown-piecetheme")[
                                 $("#dropdown-piecetheme").selectedIndex
                               ].value,
+                              true,
                             );
                           },
                         },
@@ -10146,7 +10219,15 @@
                           type: "button",
                           title: "Next piece set",
                           onclick: () => {
-                            changePieces(false);
+                            const dropdown = document.getElementById(
+                              "dropdown-piecetheme",
+                            );
+                            changePieceSet(
+                              dropdown[
+                                (dropdown.selectedIndex + 1) % dropdown.length
+                              ].value,
+                              true,
+                            );
                           },
                         },
                         icon("swap", 14),
@@ -10164,6 +10245,7 @@
                               $("#dropdown-boardtheme")[
                                 $("#dropdown-boardtheme").selectedIndex
                               ].value,
+                              true,
                             );
                           },
                         },
@@ -10181,7 +10263,15 @@
                           type: "button",
                           title: "Next board",
                           onclick: () => {
-                            changeBoard(false);
+                            const dropdown = document.getElementById(
+                              "dropdown-boardtheme",
+                            );
+                            changeBoardSet(
+                              dropdown[
+                                (dropdown.selectedIndex + 1) % dropdown.length
+                              ].value,
+                              true,
+                            );
                           },
                         },
                         icon("swap", 14),
@@ -10261,11 +10351,13 @@
                           } else if (/janggi/i.test(value)) {
                             evalbar.classList.add("janggi");
                             mover_color_scheme = "janggi";
-                          }
-                          else {
+                          } else {
                             mover_color_scheme = "chess";
                           }
-                          localStorage.setItem("SanNotation", dropdownnotation.selectedIndex);
+                          localStorage.setItem(
+                            "SanNotation",
+                            dropdownnotation.selectedIndex,
+                          );
                         },
                       },
                       [
@@ -10370,7 +10462,11 @@
                         title:
                           "Choose the coordinate system for the chess board.",
                         onchange: () => {
-                          localStorage.setItem("BoardCoordinate", document.getElementById("boardcoordinate").selectedIndex);
+                          localStorage.setItem(
+                            "BoardCoordinate",
+                            document.getElementById("boardcoordinate")
+                              .selectedIndex,
+                          );
                         },
                       },
                       [
@@ -10471,7 +10567,11 @@
                             .getElementById("chessground-container-div")
                             .classList.remove("inner");
                         }
-                        localStorage.setItem("InnerCoordinate", document.getElementById("check-innercoordinate").checked);
+                        localStorage.setItem(
+                          "InnerCoordinate",
+                          document.getElementById("check-innercoordinate")
+                            .checked,
+                        );
                       },
                     }),
                   ]),
@@ -10522,7 +10622,10 @@
                       checked: use_integer_inputs,
                       onclick: () => {
                         use_integer_inputs = !use_integer_inputs;
-                        localStorage.setItem("UseIntegerInput", use_integer_inputs);
+                        localStorage.setItem(
+                          "UseIntegerInput",
+                          use_integer_inputs,
+                        );
                       },
                     }),
                   ]),
@@ -10536,7 +10639,10 @@
                         step: 0.05,
                         title: "Adjust sound volume here.",
                         onchange: () => {
-                          localStorage.setItem("SoundVolume", document.getElementById("range-volume").value);
+                          localStorage.setItem(
+                            "SoundVolume",
+                            document.getElementById("range-volume").value,
+                          );
                         },
                       },
                       "range",
