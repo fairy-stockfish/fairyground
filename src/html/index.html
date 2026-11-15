@@ -1882,6 +1882,9 @@
         moveMenu.id = "movecontextmenu";
         moveMenu.className = "ctxmenu";
         moveMenu.hidden = true;
+        moveMenu.oncontextmenu = function (e) {
+          e.preventDefault();
+        };
         moveMenuItems.forEach(([id, label]) => {
           const item = document.createElement("button");
           item.type = "button";
@@ -2343,7 +2346,6 @@
         };
 
         const setVariant = () => {
-          board_orientation = "white";
           play_move = false;
           stop(true);
           const variant = $("#dropdown-variant").value;
@@ -6703,18 +6705,6 @@
                         if (board_setup_mode) {
                           triggerBoardSetupPieceIdentifier(false);
                         }
-                        let chessgrounddiv =
-                          document.getElementById("chessground-board");
-                        if (
-                          chessgrounddiv.classList.contains("orientation-white")
-                        ) {
-                          board_orientation = "white";
-                        } else if (
-                          chessgrounddiv.classList.contains("orientation-black")
-                        ) {
-                          board_orientation = "black";
-                        }
-                        m.redraw();
                       }, 50);
                     },
                   },
@@ -7940,6 +7930,12 @@
                   m("input[type=checkbox]#isgamestarted", {
                     hidden: true,
                   }),
+                  m("p#boardorientation", {
+                    hidden: true,
+                    onclick: (e) => {
+                      board_orientation = e.target.textContent;
+                    },
+                  }),
                 ]),
                 ,
                 m("input[type=checkbox]#isenginematchmode", {
@@ -8457,6 +8453,10 @@
                     "Pick a piece, then click a square to place it. Drag pieces to move them, drop them off the board to remove them.",
                   ),
                   m(
+                    "p.hint",
+                    'Changes made here will not be effective until you click "Apply" button.',
+                  ),
+                  m(
                     "select#dropdown-setpiece",
                     {
                       hidden: true,
@@ -8524,53 +8524,55 @@
                       m("option", { value: "R" }, "R"),
                     ],
                   ),
-                  m(
-                    "button#addtopocket.sm",
-                    {
-                      type: "button",
-                      disabled: !is_ready,
-                      title:
-                        "Click to add the piece selected in the dropdown to pocket.",
-                    },
-                    "Add to pocket",
-                  ),
-                  m(
-                    "button#clearboard.sm",
-                    {
-                      type: "button",
-                      disabled: !is_ready,
-                      title: "Click to remove all pieces.",
-                    },
-                    "Clear board",
-                  ),
-                  m(
-                    "button#initboardpos.sm",
-                    {
-                      type: "button",
-                      disabled: !is_ready,
-                      title: "Click to set the board to default position.",
-                    },
-                    "Reset board",
-                  ),
-                  m(
-                    "button#validatepos.sm.soft",
-                    {
-                      type: "button",
-                      disabled: !is_ready,
-                      title: "Click to validate this position.",
-                    },
-                    "Validate",
-                  ),
-                  m(
-                    "button#boardsetupcopyfen.sm.primary",
-                    {
-                      type: "button",
-                      disabled: !is_ready,
-                      title:
-                        "Click to set the position, and then uncheck Board Setup to play or analyze.",
-                    },
-                    "Apply",
-                  ),
+                  m("div#boardeditorbuttons", [
+                    m(
+                      "button#addtopocket.sm",
+                      {
+                        type: "button",
+                        disabled: !is_ready,
+                        title:
+                          "Click to add the piece selected in the dropdown to pocket.",
+                      },
+                      "Add to pocket",
+                    ),
+                    m(
+                      "button#clearboard.sm",
+                      {
+                        type: "button",
+                        disabled: !is_ready,
+                        title: "Click to remove all pieces.",
+                      },
+                      "Clear board",
+                    ),
+                    m(
+                      "button#initboardpos.sm",
+                      {
+                        type: "button",
+                        disabled: !is_ready,
+                        title: "Click to set the board to default position.",
+                      },
+                      "Reset board",
+                    ),
+                    m(
+                      "button#validatepos.sm.soft",
+                      {
+                        type: "button",
+                        disabled: !is_ready,
+                        title: "Click to validate this position.",
+                      },
+                      "Validate",
+                    ),
+                    m(
+                      "button#boardsetupcopyfen.sm.primary",
+                      {
+                        type: "button",
+                        disabled: !is_ready,
+                        title:
+                          "Click to set the position, and then uncheck Board Setup to play or analyze.",
+                      },
+                      "Apply",
+                    ),
+                  ]),
                 ]),
                 m("div#pocketpiecechange", { hidden: true }, [
                   m("form#pieceinpocket", { disabled: !is_ready }, [

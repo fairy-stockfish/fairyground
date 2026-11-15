@@ -2100,7 +2100,7 @@ spangameresultmini {
   gap: 10px;
 }
 
-#boardpiecechange {
+#boardpiecechange, #boardeditorbuttons {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;

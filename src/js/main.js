@@ -220,6 +220,7 @@ const buttonhighlightmove = document.getElementById("highlightmove");
 const searchresultinfo = document.getElementById("searchresultinfo");
 const dropdownNotationSystem = document.getElementById("sannotation");
 const pRandomMoverGo = document.getElementById("randommovergo");
+const pBoardOrientation = document.getElementById("boardorientation");
 
 // Compact number formatting for the engine statistics (1.2M, 850k).
 function formatCount(value) {
@@ -2061,6 +2062,9 @@ function initBoard(variant) {
     pocketTopEl.classList.remove("no-inital-pocket-piece");
     pocketBottomEl.classList.remove("no-inital-pocket-piece");
   }
+
+  pBoardOrientation.textContent = "white";
+  pBoardOrientation.click();
 }
 
 function forceCoordinateRecalculation() {
@@ -3994,6 +3998,8 @@ new Module().then((loadedModule) => {
     chessground.toggleOrientation();
     chessground_mini.toggleOrientation();
     themedetector.SetOrientation(chessground.state.orientation);
+    pBoardOrientation.textContent = chessground.state.orientation;
+    pBoardOrientation.click();
     updateInnerCoordinateColor(chessground);
   };
 
@@ -4534,6 +4540,8 @@ new Module().then((loadedModule) => {
         orientation: "black",
       });
       updateInnerCoordinateColor(chessground);
+      pBoardOrientation.textContent = "black";
+      pBoardOrientation.click();
     }
     if (
       playWhite.checked == false &&
@@ -4544,6 +4552,8 @@ new Module().then((loadedModule) => {
         orientation: "white",
       });
       updateInnerCoordinateColor(chessground);
+      pBoardOrientation.textContent = "white";
+      pBoardOrientation.click();
     }
     themedetector.SetOrientation(chessground.state.orientation);
     timerElapsePreviousPlayer = false;
@@ -6479,8 +6489,12 @@ function finishChessgroundDrop(move, choice) {
     promotion = choice;
   }
 
-  board.push(promotion + move);
-  afterMove(promotion + move, false);
+  let finalmove = promotion + move;
+
+  if (!board.push(finalmove)) {
+    finalmove = null;
+  }
+  afterMove(finalmove, false);
 }
 
 function afterMove(move, capture) {
