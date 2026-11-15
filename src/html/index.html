@@ -6977,7 +6977,7 @@
                   "button.sm",
                   {
                     type: "button",
-                    title: "Click to clear the consoles of the binary engines.",
+                    title: "Click to clear all consoles.",
                     onclick: () => {
                       first_engine_output = "";
                       second_engine_output = "";
@@ -6989,6 +6989,7 @@
                       document.getElementById(
                         "analysisengineoutput",
                       ).textContent = "";
+                      engineoutput = "";
                       scrollOutput();
                     },
                   },
