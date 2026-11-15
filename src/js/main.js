@@ -7208,7 +7208,7 @@ function updateChessground(showresult) {
 
   if (boardfenvallist.length == 7) {
     const checknums = boardfenvallist[4].split("+");
-    pcheckCounts.textContent = `White remaining checks: ${checknums[1]} - Black remaining checks: ${checknums[0]}`;
+    pcheckCounts.textContent = `First mover remaining checks: ${checknums[1]} ·········· Second mover remaining checks: ${checknums[0]}`;
     pcheckCounts.hidden = false;
   } else {
     pcheckCounts.textContent = "";

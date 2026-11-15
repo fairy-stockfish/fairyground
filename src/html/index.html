@@ -2088,6 +2088,8 @@
 
         let use_integer_inputs = false;
 
+        let mover_color_scheme = "chess";
+
         const default_start_time = 300000;
         const default_time_increment = 3000;
         const default_byoyomi_periods = 3;
@@ -2340,6 +2342,24 @@
           fge.second_engine = null;
           fge.analysis_engine = null;
         }
+
+        const playerColor = (scheme, side) => {
+          if (scheme == "chess") {
+            return side == "white" ? "White" : "Black";
+          }
+          else if (scheme == "janggi") {
+            return side == "white" ? "Blue" : "Red";
+          }
+          else if (scheme == "shogi") {
+            return side == "white" ? "Black" : "White";
+          }
+          else if (scheme == "xiangqi") {
+            return side == "white" ? "Red" : "Black";
+          }
+          else {
+            return "Unknown Color";
+          }
+        };
 
         const getVariants = () => {
           stockfish.postMessage(`uci`);
@@ -6505,8 +6525,8 @@
               ),
               m("div", [
                 board_orientation == "white"
-                  ? m("p.name", playerName(game_black, "Black"))
-                  : m("p.name", playerName(game_white, "White")),
+                  ? m("p.name", playerName(game_black, playerColor(mover_color_scheme, "black")))
+                  : m("p.name", playerName(game_white, playerColor(mover_color_scheme, "white"))),
                 board_orientation == "white"
                   ? m("p.sub", "Second mover")
                   : m("p.sub", "First mover"),
@@ -6542,8 +6562,8 @@
               ),
               m("div", [
                 board_orientation == "white"
-                  ? m("p.name", playerName(game_white, "White"))
-                  : m("p.name", playerName(game_black, "Black")),
+                  ? m("p.name", playerName(game_white, playerColor(mover_color_scheme, "white")))
+                  : m("p.name", playerName(game_black, playerColor(mover_color_scheme, "black"))),
                 board_orientation == "white"
                   ? m("p.sub", "First mover")
                   : m("p.sub", "Second mover"),
@@ -7531,7 +7551,7 @@
                       ),
                     ]),
                     m("div#whiteenginesettings", [
-                      m("p", "1st binary engine (white)"),
+                      m("p", "1st binary engine (First mover)"),
                       m("input[type=number]#whitedepth", {
                         placeholder: "Depth",
                         title:
@@ -7569,7 +7589,7 @@
                       ),
                     ]),
                     m("div#blackenginesettings", [
-                      m("p", "2nd binary engine (black)"),
+                      m("p", "2nd binary engine (Second mover)"),
                       m("input[type=number]#blackdepth", {
                         placeholder: "Depth",
                         title:
@@ -10200,7 +10220,7 @@
                       "select#sannotation.sm",
                       {
                         title:
-                          "Select the move notation system that is used in move history and engine principal variations.",
+                          "Select the move notation system that is used in move history and engine principal variations.\nPlayer colors will also change based on the notation. (Chess, Janggi, Shogi and Xiangqi have different player colors)",
                         onchange: () => {
                           const dropdownnotation =
                             document.getElementById("sannotation");
@@ -10213,10 +10233,16 @@
                           evalbar.classList.remove("janggi");
                           if (/xiangqi|ucci/i.test(value)) {
                             evalbar.classList.add("xiangqi");
+                            mover_color_scheme = "xiangqi";
                           } else if (/shogi|usi/i.test(value)) {
                             evalbar.classList.add("shogi");
+                            mover_color_scheme = "shogi";
                           } else if (/janggi/i.test(value)) {
                             evalbar.classList.add("janggi");
+                            mover_color_scheme = "janggi";
+                          }
+                          else {
+                            mover_color_scheme = "chess";
                           }
                         },
                       },
