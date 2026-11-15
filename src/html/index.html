@@ -488,7 +488,6 @@
 
       document.addEventListener("onpageload", () => {
         pageloaded = true;
-        document.getElementById("sannotation").selectedIndex = 2;
         if (uithemesparsed) {
           document.getElementById("setupuithemes").click();
           console.log(
@@ -524,6 +523,28 @@
               updateInfoDivWidth();
             }, 10);
           });
+
+        setTimeout(() => {
+          document.getElementById("sannotation").selectedIndex = parseInt(localStorage.getItem("SanNotation")) || 2;
+          document.getElementById("sannotation").dispatchEvent(new Event("change"));
+          document.getElementById("boardcoordinate").selectedIndex = parseInt(localStorage.getItem("BoardCoordinate")) || 0;
+          document.getElementById("boardcoordinate").dispatchEvent(new Event("change"));
+          if (localStorage.getItem("InnerCoordinate") == "true") {
+            document.getElementById("check-innercoordinate").click();
+          }
+          if (localStorage.getItem("ShowDestinations") == "false") {
+            document.getElementById("check-dests").click();
+          }
+          if (localStorage.getItem("ShowAdjudication") == "false") {
+            document.getElementById("check-adjudicate").click();
+          }
+          if (localStorage.getItem("UseIntegerInput") == "true") {
+            document.getElementById("check-granularity").click();
+          }
+          document.getElementById("range-volume").value = localStorage.getItem("SoundVolume") || 1;
+          document.getElementById("range-volume").dispatchEvent(new Event("change"));
+        }, 500);
+
         let chessgroundmini = document.getElementById("chessground-mini");
         let chessgroundminiboardwrapper = document.getElementById(
           "chessground-mini-board-wrapper-div",
@@ -10244,6 +10265,7 @@
                           else {
                             mover_color_scheme = "chess";
                           }
+                          localStorage.setItem("SanNotation", dropdownnotation.selectedIndex);
                         },
                       },
                       [
@@ -10347,6 +10369,9 @@
                       {
                         title:
                           "Choose the coordinate system for the chess board.",
+                        onchange: () => {
+                          localStorage.setItem("BoardCoordinate", document.getElementById("boardcoordinate").selectedIndex);
+                        },
                       },
                       [
                         m(
@@ -10446,6 +10471,7 @@
                             .getElementById("chessground-container-div")
                             .classList.remove("inner");
                         }
+                        localStorage.setItem("InnerCoordinate", document.getElementById("check-innercoordinate").checked);
                       },
                     }),
                   ]),
@@ -10462,6 +10488,7 @@
                       checked: show_dests,
                       onclick: () => {
                         show_dests = !show_dests;
+                        localStorage.setItem("ShowDestinations", show_dests);
                       },
                     }),
                   ]),
@@ -10478,6 +10505,7 @@
                       checked: adjudicate,
                       onclick: () => {
                         adjudicate = !adjudicate;
+                        localStorage.setItem("ShowAdjudication", adjudicate);
                       },
                     }),
                   ]),
@@ -10494,6 +10522,7 @@
                       checked: use_integer_inputs,
                       onclick: () => {
                         use_integer_inputs = !use_integer_inputs;
+                        localStorage.setItem("UseIntegerInput", use_integer_inputs);
                       },
                     }),
                   ]),
@@ -10506,6 +10535,9 @@
                         max: 1,
                         step: 0.05,
                         title: "Adjust sound volume here.",
+                        onchange: () => {
+                          localStorage.setItem("SoundVolume", document.getElementById("range-volume").value);
+                        },
                       },
                       "range",
                     ),

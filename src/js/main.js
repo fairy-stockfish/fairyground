@@ -5295,7 +5295,7 @@ new Module().then((loadedModule) => {
       }, 20);
     };
 
-  checkBoxInnerCoordinate.onchange = function () {
+  checkBoxInnerCoordinate.oninput = function () {
     updateInnerCoordinateColor(chessground);
   };
 
