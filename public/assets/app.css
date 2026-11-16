@@ -2584,13 +2584,17 @@ spangameresultmini {
 #loadsavedgamespopup th,
 #loadsavedgamespopup td {
   padding: 4px 8px;
-  border-color: var(--border2) !important;
+  border-color: var(--border2);
+  border-width: 1px;
+  border-style: solid;
 }
 
 #loadsavedgamespopup caption {
   font-weight: 700;
   padding: 6px;
-  border-color: var(--border2) !important;
+  border-color: var(--border2);
+  border-width: 2px;
+  border-style: solid;
 }
 
 /* ---------- mini board ---------- */
