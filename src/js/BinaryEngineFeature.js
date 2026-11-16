@@ -2449,7 +2449,6 @@ function ShowEngineSetupUI(EngineList, EngineClass, DestructOnClose, ws) {
   let engineprotocoltext = document.createElement("p");
   engineprotocoltext.innerText = "Engine Protocol:";
   let engineprotocol = document.createElement("select");
-  engineprotocol.style.background = "#eee";
   engineprotocol.style.width = "400px";
   let option = document.createElement("option");
   option.text = "UCI (Universal Chess Interface)";
