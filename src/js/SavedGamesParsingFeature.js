@@ -1130,12 +1130,8 @@ class GameDisplayTable {
       throw TypeError();
     }
     this.Table = document.createElement("table");
-    this.Table.style.border = "2px double black";
     this.Caption = document.createElement("caption");
     this.Caption.innerText = "Total Games: 0 ┇ Games Shown: 0";
-    this.Caption.style.borderTop = "2px double black";
-    this.Caption.style.borderLeft = "2px double black";
-    this.Caption.style.borderRight = "2px double black";
     this.Table.appendChild(this.Caption);
     this.GameList = [];
     this.GlobalGameList = GlobalGameList;
@@ -1149,85 +1145,82 @@ class GameDisplayTable {
     this.GameList = [];
     this.Caption = document.createElement("caption");
     this.Caption.innerText = "Total Games: 0 ┇ Games Shown: 0";
-    this.Caption.style.borderTop = "2px double black";
-    this.Caption.style.borderLeft = "2px double black";
-    this.Caption.style.borderRight = "2px double black";
     this.Table.appendChild(this.Caption);
     let header = document.createElement("tr");
     let headerentry = document.createElement("th");
     headerentry.innerText = "Variant";
     headerentry.style.fontWeight = "bold";
-    headerentry.style.border = "1px solid black";
+
     header.appendChild(headerentry);
     headerentry = document.createElement("th");
     headerentry.innerText = "Event";
     headerentry.style.fontWeight = "bold";
-    headerentry.style.border = "1px solid black";
+
     header.appendChild(headerentry);
     headerentry = document.createElement("th");
     headerentry.innerText = "Site";
     headerentry.style.fontWeight = "bold";
-    headerentry.style.border = "1px solid black";
+
     header.appendChild(headerentry);
     headerentry = document.createElement("th");
     headerentry.innerText = "Date";
     headerentry.style.fontWeight = "bold";
-    headerentry.style.border = "1px solid black";
+
     header.appendChild(headerentry);
     headerentry = document.createElement("th");
     headerentry.innerText = "Round";
     headerentry.style.fontWeight = "bold";
-    headerentry.style.border = "1px solid black";
+
     header.appendChild(headerentry);
     headerentry = document.createElement("th");
     headerentry.innerText = "Result";
     headerentry.style.fontWeight = "bold";
-    headerentry.style.border = "1px solid black";
+
     header.appendChild(headerentry);
     headerentry = document.createElement("th");
     headerentry.innerText = "First Player";
     headerentry.style.fontWeight = "bold";
-    headerentry.style.border = "1px solid black";
+
     header.appendChild(headerentry);
     headerentry = document.createElement("th");
     headerentry.innerText = "Elo";
     headerentry.style.fontWeight = "bold";
-    headerentry.style.border = "1px solid black";
+
     header.appendChild(headerentry);
     headerentry = document.createElement("th");
     headerentry.innerText = "Second Player";
     headerentry.style.fontWeight = "bold";
-    headerentry.style.border = "1px solid black";
+
     header.appendChild(headerentry);
     headerentry = document.createElement("th");
     headerentry.innerText = "Elo";
     headerentry.style.fontWeight = "bold";
-    headerentry.style.border = "1px solid black";
+
     header.appendChild(headerentry);
     headerentry = document.createElement("th");
     headerentry.innerText = "Best Move";
     headerentry.style.fontWeight = "bold";
-    headerentry.style.border = "1px solid black";
+
     header.appendChild(headerentry);
     headerentry = document.createElement("th");
     headerentry.innerText = "Supplied Move";
     headerentry.style.fontWeight = "bold";
-    headerentry.style.border = "1px solid black";
+
     header.appendChild(headerentry);
     headerentry = document.createElement("th");
     headerentry.innerText = "Evaluation";
     headerentry.style.fontWeight = "bold";
-    headerentry.style.border = "1px solid black";
+
     header.appendChild(headerentry);
     headerentry = document.createElement("th");
     headerentry.innerText = "Termination";
     headerentry.style.fontWeight = "bold";
-    headerentry.style.border = "1px solid black";
+
     header.appendChild(headerentry);
     headerentry = document.createElement("th");
     headerentry.innerText = "Actions";
     headerentry.style.fontWeight = "bold";
-    headerentry.style.border = "1px solid black";
+
     header.appendChild(headerentry);
     this.Table.appendChild(header);
   }
@@ -1261,62 +1254,62 @@ class GameDisplayTable {
     if (GameObject.Is960) {
       entry.innerText += " (Fischer Random)";
     }
-    entry.style.border = "1px solid black";
+
     row.appendChild(entry);
     entry = document.createElement("td");
     entry.innerText = GameObject.Event;
-    entry.style.border = "1px solid black";
+
     row.appendChild(entry);
     entry = document.createElement("td");
     entry.innerText = GameObject.Site;
-    entry.style.border = "1px solid black";
+
     row.appendChild(entry);
     entry = document.createElement("td");
     entry.innerText = GameObject.GameDate.toDateString();
-    entry.style.border = "1px solid black";
+
     row.appendChild(entry);
     entry = document.createElement("td");
     entry.innerText = GameObject.Round.toString();
-    entry.style.border = "1px solid black";
+
     row.appendChild(entry);
     entry = document.createElement("td");
     entry.innerText = GameObject.Result;
-    entry.style.border = "1px solid black";
+
     row.appendChild(entry);
     entry = document.createElement("td");
     entry.innerText = GameObject.FirstPlayerName;
-    entry.style.border = "1px solid black";
+
     row.appendChild(entry);
     entry = document.createElement("td");
     entry.innerText = GameObject.FirstPlayerElo;
-    entry.style.border = "1px solid black";
+
     row.appendChild(entry);
     entry = document.createElement("td");
     entry.innerText = GameObject.SecondPlayerName;
-    entry.style.border = "1px solid black";
+
     row.appendChild(entry);
     entry = document.createElement("td");
     entry.innerText = GameObject.SecondPlayerElo;
-    entry.style.border = "1px solid black";
+
     row.appendChild(entry);
     entry = document.createElement("td");
     entry.innerText = GameObject.BestMove;
-    entry.style.border = "1px solid black";
+
     row.appendChild(entry);
     entry = document.createElement("td");
     entry.innerText = GameObject.SuppliedMove;
-    entry.style.border = "1px solid black";
+
     row.appendChild(entry);
     entry = document.createElement("td");
     entry.innerText = GameObject.Evaluation.toFixed(2);
-    entry.style.border = "1px solid black";
+
     row.appendChild(entry);
     entry = document.createElement("td");
     entry.innerText = GameObject.Termination;
-    entry.style.border = "1px solid black";
+
     row.appendChild(entry);
     entry = document.createElement("td");
-    entry.style.border = "1px solid black";
+
     let applypos = document.createElement("button");
     let applypostext = document.createTextNode("Set Position");
     applypos.appendChild(applypostext);
@@ -1741,7 +1734,6 @@ function ShowPGNOrEPDFileUI(GameList, FFishJSLibrary) {
   searchbox.maxLength = 9999;
   searchbox.style.width = "400px";
   searchbox.placeholder = "Leave blank to display all games";
-  searchbox.style.border = "1px solid #ddd";
   let searchtarget = document.createElement("select");
   let searchentry = document.createElement("option");
   searchentry.value = "Variant";

@@ -358,7 +358,8 @@ textarea:disabled {
 
 input:invalid {
   border-color: var(--bad);
-  box-shadow: 0 0 0 2px rgba(184, 69, 47, 0.18);
+  box-shadow: 0 0 0 5px rgba(255, 0, 0, 0.5);
+  color: var(--bad);
 }
 
 input::placeholder {
@@ -992,6 +993,10 @@ button.favbtn.on {
   align-items: start;
 }
 
+.settings-ui {
+  z-index: 1001;
+}
+
 /* ---------- board column ---------- */
 
 .boardcol {
@@ -1138,6 +1143,10 @@ button.favbtn.on {
 
 cg-board {
   box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.22);
+}
+
+.micro cg-board {
+  box-shadow: none;
 }
 
 /* Promotion / gating choice shown on top of the board */
@@ -1463,6 +1472,7 @@ cg-board {
 .betzaboard {
   display: grid;
   grid-template-columns: repeat(var(--betza-size), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--betza-rows), minmax(0, 1fr));
   width: 100%;
   max-width: 220px;
   aspect-ratio: 1;
@@ -1873,7 +1883,7 @@ button.inioption {
 }
 
 #evalbar.janggi {
-  background-color: #2f4ea3;
+  background-color: #c9302c;
 }
 
 #evalbar #evalbarprogress {
@@ -1893,7 +1903,7 @@ button.inioption {
 }
 
 #evalbar.janggi #evalbarprogress {
-  background-color: #c9302c;
+  background-color: #2f4ea3;
 }
 
 #evalbar #cp {
@@ -1911,7 +1921,7 @@ button.inioption {
     0 0 1px rgba(0, 0, 0, 0.8);
 }
 
-#evalinfo {
+#evalcomment, #evalinfo {
   white-space: normal;
   font-size: 12px;
   color: var(--muted);
@@ -1972,13 +1982,13 @@ spangameresultmini {
 
 /* engine tab */
 
-.sliders {
+.sliders, .integer-inputs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px 18px;
 }
 
-.sliderrow {
+.sliderrow, .integerrow {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -2094,7 +2104,7 @@ spangameresultmini {
   gap: 10px;
 }
 
-#boardpiecechange {
+#boardpiecechange, #boardeditorbuttons {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -2305,6 +2315,12 @@ spangameresultmini {
 .sliders.timecontrol {
   flex: 0 0 100%;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.integer-inputs.timecontrol {
+  flex: 0 0 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 5px;
 }
 
 #whitetimesettings .sliderrow input,
@@ -2568,13 +2584,17 @@ spangameresultmini {
 #loadsavedgamespopup th,
 #loadsavedgamespopup td {
   padding: 4px 8px;
-  border-color: var(--border2) !important;
+  border-color: var(--border2);
+  border-width: 1px;
+  border-style: solid;
 }
 
 #loadsavedgamespopup caption {
   font-weight: 700;
   padding: 6px;
-  border-color: var(--border2) !important;
+  border-color: var(--border2);
+  border-width: 2px;
+  border-style: solid;
 }
 
 /* ---------- mini board ---------- */
@@ -2655,6 +2675,10 @@ spangameresultmini {
 #setpositiontomainboard:before {
   color: #c99700;
   content: "\f002";
+}
+
+#setpositiontomainboard:disabled:before {
+  cursor: not-allowed;
 }
 
 #closeminiboard:before {

@@ -523,6 +523,43 @@
               updateInfoDivWidth();
             }, 10);
           });
+
+        setTimeout(() => {
+          document.getElementById("sannotation").selectedIndex =
+            parseInt(localStorage.getItem("SanNotation")) || 2;
+          document
+            .getElementById("sannotation")
+            .dispatchEvent(new Event("change"));
+          document.getElementById("boardcoordinate").selectedIndex =
+            parseInt(localStorage.getItem("BoardCoordinate")) || 0;
+          document
+            .getElementById("boardcoordinate")
+            .dispatchEvent(new Event("change"));
+          if (localStorage.getItem("InnerCoordinate") == "true") {
+            document.getElementById("check-innercoordinate").click();
+          }
+          if (localStorage.getItem("ShowDestinations") == "false") {
+            document.getElementById("check-dests").click();
+          }
+          if (localStorage.getItem("ShowAdjudication") == "false") {
+            document.getElementById("check-adjudicate").click();
+          }
+          if (localStorage.getItem("UseIntegerInput") == "true") {
+            document.getElementById("check-granularity").click();
+          }
+          if (localStorage.getItem("AdvancedPGNMode") == "false") {
+            document.getElementById("isadvpgnmode").click();
+          }
+          if (localStorage.getItem("ShowMovesDialog") == "true") {
+            document.getElementById("showmovediv").click();
+          }
+          document.getElementById("range-volume").value =
+            localStorage.getItem("SoundVolume") || 1;
+          document
+            .getElementById("range-volume")
+            .dispatchEvent(new Event("change"));
+        }, 500);
+
         let chessgroundmini = document.getElementById("chessground-mini");
         let chessgroundminiboardwrapper = document.getElementById(
           "chessground-mini-board-wrapper-div",
@@ -1044,29 +1081,60 @@
       };
 
       const isSupported = () => {
-        if (typeof WebAssembly !== "object") return false;
-        const source = Uint8Array.from([
-          0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 7, 8,
-          1, 4, 116, 101, 115, 116, 0, 0, 10, 15, 1, 13, 0, 65, 0, 253, 17, 65,
-          0, 253, 17, 253, 186, 1, 11,
-        ]);
-        if (
-          typeof WebAssembly.validate !== "function" ||
-          !WebAssembly.validate(source)
-        )
-          return false;
-        if (typeof Atomics !== "object") return false;
+        let error_information = [];
+        if (typeof WebAssembly !== "object") {
+          error_information.push(
+            "WebAssembly is not available in current browser environment.",
+          );
+        } else {
+          const source = Uint8Array.from([
+            0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 7,
+            8, 1, 4, 116, 101, 115, 116, 0, 0, 10, 15, 1, 13, 0, 65, 0, 253, 17,
+            65, 0, 253, 17, 253, 186, 1, 11,
+          ]);
+          if (
+            typeof WebAssembly.validate !== "function" ||
+            !WebAssembly.validate(source)
+          ) {
+            error_information.push(
+              "WebAssembly.validate is not available in current browser environment, or WebAssembly.validate fails to recognize a valid WASM.",
+            );
+          }
+        }
+        if (typeof Atomics !== "object") {
+          error_information.push(
+            "Atomics is not available in current browser environment.",
+          );
+        }
         if (typeof SharedArrayBuffer !== "function") {
-          console.log("SharedArrayBuffer not enabled!");
-          return false;
+          error_information.push(
+            "SharedArrayBuffer is not available in current browser environment.",
+          );
         }
         if (typeof FileReader === "undefined") {
-          return false;
+          error_information.push(
+            "FileReader is not available in current browser environment.",
+          );
         }
         if (typeof WebSocket === "undefined") {
-          return false;
+          error_information.push(
+            "WebSocket is not available in current browser environment.",
+          );
         }
-        return true;
+        if (typeof localStorage === "undefined") {
+          error_information.push(
+            "localStorage is not available in current browser environment.",
+          );
+        }
+        if (typeof Worker === "undefined") {
+          error_information.push(
+            "Worker is not available in current browser environment.",
+          );
+        }
+        return {
+          supported: error_information.length == 0,
+          error_messages: error_information,
+        };
       };
 
       const RequestProgress = ({ attrs: { url, onFinishDownload } }) => {
@@ -1881,6 +1949,9 @@
         moveMenu.id = "movecontextmenu";
         moveMenu.className = "ctxmenu";
         moveMenu.hidden = true;
+        moveMenu.oncontextmenu = function (e) {
+          e.preventDefault();
+        };
         moveMenuItems.forEach(([id, label]) => {
           const item = document.createElement("button");
           item.type = "button";
@@ -1909,7 +1980,13 @@
         const openMoveMenu = (element, x, y) => {
           const moveinput = document.getElementById("move");
           const setposition = document.getElementById("setpos");
-          if (!moveinput || !setposition || setposition.disabled) {
+          const isgamestarted = document.getElementById("isgamestarted");
+          if (
+            !moveinput ||
+            !setposition ||
+            setposition.disabled ||
+            (isgamestarted && isgamestarted.checked)
+          ) {
             return;
           }
           moveinput.value = element.moves;
@@ -1936,7 +2013,12 @@
         if (movelist) {
           movelist.addEventListener("click", (event) => {
             const element = event.target.closest(".position-display-label");
-            if (!element || element.moves === undefined) {
+            const isgamestarted = document.getElementById("isgamestarted");
+            if (
+              !element ||
+              element.moves === undefined ||
+              (isgamestarted && isgamestarted.checked)
+            ) {
               return;
             }
             const moveinput = document.getElementById("move");
@@ -1948,10 +2030,10 @@
             setposition.click();
             // The move list click also opens the preview mini board; the
             // main board now shows the position, so close the preview.
-            const miniboard = document.getElementById("chessground-mini");
-            if (miniboard && !miniboard.locked) {
-              miniboard.style.display = "none";
-            }
+            // const miniboard = document.getElementById("chessground-mini");
+            // if (miniboard && !miniboard.locked) {
+            //   miniboard.style.display = "none";
+            // }
           });
           movelist.addEventListener("contextmenu", (event) => {
             const element = event.target.closest(".position-display-label");
@@ -1999,6 +2081,53 @@
         }
       });
 
+      const getVariantTheme = (variant, is_board_theme) => {
+        let stored_data = is_board_theme
+          ? localStorage.getItem("UserSelectedBoardTheme")
+          : localStorage.getItem("UserSelectedPieceTheme");
+        let theme_str = stored_data || "{}";
+        let parsed_json = {};
+        try {
+          parsed_json = JSON.parse(theme_str);
+        } catch (e) {
+          parsed_json = {};
+        }
+        let result = parsed_json[variant];
+        if (typeof result == "string") {
+          return result;
+        } else {
+          return null;
+        }
+      };
+
+      const setVariantTheme = (variant, theme_name, is_board_theme) => {
+        let stored_data = is_board_theme
+          ? localStorage.getItem("UserSelectedBoardTheme")
+          : localStorage.getItem("UserSelectedPieceTheme");
+        let theme_str = stored_data || "{}";
+        let parsed_json = {};
+        if (variant == "") {
+          return;
+        }
+        try {
+          parsed_json = JSON.parse(theme_str);
+        } catch (e) {
+          parsed_json = {};
+        }
+        parsed_json[variant] = theme_name;
+        if (is_board_theme) {
+          localStorage.setItem(
+            "UserSelectedBoardTheme",
+            JSON.stringify(parsed_json),
+          );
+        } else {
+          localStorage.setItem(
+            "UserSelectedPieceTheme",
+            JSON.stringify(parsed_json),
+          );
+        }
+      };
+
       const App = () => {
         let stockfish = null;
         let stockfish_state = "INIT"; // 'READY', 'FAILED'
@@ -2016,6 +2145,7 @@
         let board_setup_mode = false;
         let advanced_time_control = false;
         let during_play = false;
+        let game_started = false;
         let select_move_dialog = false;
         let in_browser_fsf_hash = 16;
         let in_browser_fsf_skill = 20;
@@ -2066,6 +2196,22 @@
         let varianttypes = [];
 
         let engine_list = [];
+
+        let piece_palette_orientation = "white";
+        let board_orientation = "white";
+
+        let use_integer_inputs = false;
+
+        let mover_color_scheme = "chess";
+
+        const default_start_time = 300000;
+        const default_time_increment = 3000;
+        const default_byoyomi_periods = 3;
+        const default_byoyomi_period_length = 30000;
+        const default_timeout_margin = 0;
+        const default_movetime = 500;
+        const default_depth = 12;
+        const default_nodes = 1000000;
 
         document.addEventListener("gameend", (event) => {
           finishGame(event.detail.result, event.detail.reason);
@@ -2310,6 +2456,20 @@
           fge.second_engine = null;
           fge.analysis_engine = null;
         }
+
+        const playerColor = (scheme, side) => {
+          if (scheme == "chess") {
+            return side == "white" ? "White" : "Black";
+          } else if (scheme == "janggi") {
+            return side == "white" ? "Blue" : "Red";
+          } else if (scheme == "shogi") {
+            return side == "white" ? "Black" : "White";
+          } else if (scheme == "xiangqi") {
+            return side == "white" ? "Red" : "Black";
+          } else {
+            return "Unknown Color";
+          }
+        };
 
         const getVariants = () => {
           stockfish.postMessage(`uci`);
@@ -2783,10 +2943,10 @@
 
         const reset = () => {
           review_mode = false;
-          if (board_setup_mode) {
-            board_setup_mode = false;
-            triggerBoardSetupPieceIdentifier(false);
-          }
+          // if (board_setup_mode) {
+          //   board_setup_mode = false;
+          //   triggerBoardSetupPieceIdentifier(false);
+          // }
         };
 
         // const undo = () => {
@@ -3033,9 +3193,15 @@
                     white_byoyomi_time_per_period,
                   );
                 } else {
+                  if (clear_log) {
+                    engineoutput = "";
+                  }
                   stockfish.postMessage(`go ${args}`);
                 }
               } else {
+                if (clear_log) {
+                  engineoutput = "";
+                }
                 stockfish.postMessage(`go ${args}`);
               }
             } else if (stm == "white") {
@@ -3093,11 +3259,15 @@
                     //console.log("WHITE: go " + wargs);
                   }
                 } else if (!black_engine_ponder_and_human_white) {
-                  engineoutput = "";
+                  if (clear_log) {
+                    engineoutput = "";
+                  }
                   stockfish.postMessage(`go ${args}`);
                 }
               } else if (!black_engine_ponder_and_human_white) {
-                engineoutput = "";
+                if (clear_log) {
+                  engineoutput = "";
+                }
                 stockfish.postMessage(`go ${args}`);
               }
               if (fge.second_engine) {
@@ -3185,11 +3355,15 @@
                     //console.log("BLACK: go " + bargs);
                   }
                 } else if (!white_engine_ponder_and_human_black) {
-                  engineoutput = "";
+                  if (clear_log) {
+                    engineoutput = "";
+                  }
                   stockfish.postMessage(`go ${args}`);
                 }
               } else if (!white_engine_ponder_and_human_black) {
-                engineoutput = "";
+                if (clear_log) {
+                  engineoutput = "";
+                }
                 stockfish.postMessage(`go ${args}`);
               }
               if (fge.first_engine) {
@@ -3224,7 +3398,9 @@
               }
             }
           } else {
-            engineoutput = "";
+            if (clear_log) {
+              engineoutput = "";
+            }
             stockfish.postMessage(`go ${args}`);
           }
         };
@@ -3697,11 +3873,11 @@
           //advanced_time_control = false;
           force_stop();
           //$("#currentposition").click();
-          $("#input").style.display = "";
-          $("#input2").style.display = "";
-          $("#input3").style.display = "";
-          $("#posvariantdiv").style.display = "";
-          $("#pgn-operations").style.display = "";
+          // $("#input").style.display = "";
+          // $("#input2").style.display = "";
+          // $("#input3").style.display = "";
+          // $("#posvariantdiv").style.display = "";
+          // $("#pgn-operations").style.display = "";
         };
 
         const gameAbort = () => {
@@ -3714,11 +3890,11 @@
             return;
           }
           //We need to prevent user from doing unnecessary actions during countdown, so we'll hide these divs
-          $("#input").style.display = "none"; //These divs are unable to be hidden by {hidden: during_play}
-          $("#input2").style.display = "none";
-          $("#input3").style.display = "none";
-          $("#posvariantdiv").style.display = "none";
-          $("#pgn-operations").style.display = "none";
+          // $("#input").style.display = "none"; //These divs are unable to be hidden by {hidden: during_play}
+          // $("#input2").style.display = "none";
+          // $("#input3").style.display = "none";
+          // $("#posvariantdiv").style.display = "none";
+          // $("#pgn-operations").style.display = "none";
           //$("#movecontrol").style.display = "none";
           resetTimer();
           setupTimer();
@@ -3774,113 +3950,98 @@
           stop(true);
         };
 
-        const changePieces = (onlyChangeWhenInvalid) => {
-          let index = 0;
-          let themename = "";
-          let classes = [];
-          let DOMListValue;
-          const el = document.getElementById("chessground-container-div");
-          const chessgroundmini = document.getElementById(
-            "chessground-mini-container-div",
+        const initPieceTheme = () => {
+          const variant = document.getElementById("dropdown-variant").value;
+          const chessground = document.getElementById(
+            "chessground-container-div",
           );
-          index = themes[0].indexOf($("#dropdown-variant").value);
-          if (index < 0 || $("#dropdown-variant").value == "") {
+          let index = themes[0].indexOf(variant);
+          let theme_name = "";
+          let available_themes = [];
+          let DOMListValue;
+          let stored_theme = getVariantTheme(variant, false);
+          if (index < 0 || variant == "") {
             index = themes[0].indexOf("");
           }
           if (index < 0) {
-            themename = "default";
+            theme_name = "default";
           } else {
-            classes = themes[1][index];
-            if (classes.length < 1) {
-              classes = themes[1][themes[0].indexOf("")];
+            available_themes = themes[1][index];
+            if (available_themes.length == 0) {
+              available_themes = themes[1][themes[0].indexOf("")];
             }
           }
-          DOMListValue = el.classList.value.split(" ");
-          if (classes.length > 0) {
-            index = classes.indexOf(DOMListValue[1]) + 1;
-            if (onlyChangeWhenInvalid) {
-              if (index != 0) {
-                console.log("No need to change piece.");
-                updateThemeDropdowns(DOMListValue[1], null);
-                return;
-              }
-            }
-            if (index >= classes.length) {
-              index = 0;
-            }
-            themename = classes[index];
+          if (stored_theme && available_themes.includes(stored_theme)) {
+            console.log(
+              `Using stored piece theme preference for variant "${variant}": ${stored_theme}`,
+            );
+            changePieceSet(stored_theme, false);
           } else {
-            themename = "default";
+            DOMListValue = chessground.classList.value.split(" ");
+            if (available_themes.length > 0) {
+              // index = available_themes.indexOf(DOMListValue[1]) + 1;
+              // if (index != 0) {
+              //   console.log("No need to change pieces.");
+              //   updateThemeDropdowns(DOMListValue[1], null);
+              //   return;
+              // }
+              // if (index >= available_themes.length) {
+              //   index = 0;
+              // }
+              // theme_name = available_themes[index];
+              theme_name = available_themes[0];
+            } else {
+              theme_name = "default";
+            }
+            changePieceSet(theme_name, false);
           }
-          DOMListValue[1] = themename;
-          chessgroundmini.classList.value = el.classList.value =
-            DOMListValue.join(" ");
-          document.dispatchEvent(
-            new CustomEvent("themechange", {
-              detail: { piece: DOMListValue[1], board: DOMListValue[0] },
-            }),
-          );
-          console.log(`Piece theme: ${themename}`);
-          updateThemeDropdowns(themename, null);
-          if (board_setup_mode) {
-            triggerBoardSetupPieceIdentifier(false);
-          }
-          //const activeIndex = classes.findIndex((c) => el.classList.contains(c));
-          //const nextIndex = (activeIndex + 1) % classes.length;
-          //el.classList.replace(classes[activeIndex], classes[nextIndex]);
         };
 
-        const changeBoard = (onlyChangeWhenInvalid) => {
-          let index = 0;
-          let boardthemename = "";
-          let classes = [];
-          let DOMListValue;
-          const el = document.getElementById("chessground-container-div");
-          const chessgroundmini = document.getElementById(
-            "chessground-mini-container-div",
+        const initBoardTheme = (onlyChangeWhenInvalid) => {
+          const variant = document.getElementById("dropdown-variant").value;
+          const chessground = document.getElementById(
+            "chessground-container-div",
           );
-          index = themes[0].indexOf($("#dropdown-variant").value);
-          if (index < 0 || $("#dropdown-variant").value == "") {
+          let index = themes[0].indexOf(variant);
+          let theme_name = "";
+          let available_themes = [];
+          let DOMListValue;
+          let stored_theme = getVariantTheme(variant, true);
+          if (index < 0 || variant == "") {
             index = themes[0].indexOf("");
           }
           if (index < 0) {
-            boardthemename = "defaultboard";
+            theme_name = "defaultboard";
           } else {
-            classes = themes[2][index];
-            if (classes.length < 1) {
-              classes = themes[2][themes[0].indexOf("")];
+            available_themes = themes[2][index];
+            if (available_themes.length == 0) {
+              available_themes = themes[2][themes[0].indexOf("")];
             }
           }
-          DOMListValue = el.classList.value.split(" ");
-          if (classes.length > 0) {
-            index = classes.indexOf(DOMListValue[0]) + 1;
-            if (onlyChangeWhenInvalid) {
-              if (index != 0) {
-                console.log("No need to change board.");
-                updateThemeDropdowns(null, DOMListValue[0]);
-                return;
-              }
-            }
-            if (index >= classes.length) {
-              index = 0;
-            }
-            boardthemename = classes[index];
+          if (stored_theme && available_themes.includes(stored_theme)) {
+            console.log(
+              `Using stored board theme preference for variant "${variant}": ${stored_theme}`,
+            );
+            changeBoardSet(stored_theme, false);
           } else {
-            boardthemename = "defaultboard";
+            DOMListValue = chessground.classList.value.split(" ");
+            if (available_themes.length > 0) {
+              // index = available_themes.indexOf(DOMListValue[0]) + 1;
+              // if (index != 0) {
+              //   console.log("No need to change board.");
+              //   updateThemeDropdowns(null, DOMListValue[0]);
+              //   return;
+              // }
+              // if (index >= available_themes.length) {
+              //   index = 0;
+              // }
+              // theme_name = available_themes[index];
+              theme_name = available_themes[0];
+            } else {
+              theme_name = "defaultboard";
+            }
+            changeBoardSet(theme_name, false);
           }
-          DOMListValue[0] = boardthemename;
-          chessgroundmini.classList.value = el.classList.value =
-            DOMListValue.join(" ");
-          document.dispatchEvent(
-            new CustomEvent("themechange", {
-              detail: { piece: DOMListValue[1], board: DOMListValue[0] },
-            }),
-          );
-          console.log(`Board theme: ${boardthemename}`);
-          updateThemeDropdowns(null, boardthemename);
-          //const activeIndex = classes.findIndex((c) => el.classList.contains(c));
-          //const nextIndex = (activeIndex + 1) % classes.length;
-          //el.classList.replace(classes[activeIndex], classes[nextIndex]);
         };
 
         const setupThemeDropdowns = () => {
@@ -4029,7 +4190,9 @@
             }
             variantdropdown.appendChild(option);
           });
-          variantdropdown.selectedIndex = 0;
+          let chess_index_in_variants = variants.indexOf("chess");
+          variantdropdown.selectedIndex =
+            chess_index_in_variants < 0 ? 0 : chess_index_in_variants;
           //updateVariantDropdownTitles();
         };
 
@@ -4168,9 +4331,11 @@
           if (chessgrounddiv.classList.contains("orientation-white")) {
             fakewrap.classList.remove("orientation-black");
             fakewrap.classList.add("orientation-white");
+            piece_palette_orientation = "white";
           } else if (chessgrounddiv.classList.contains("orientation-black")) {
             fakewrap.classList.remove("orientation-white");
             fakewrap.classList.add("orientation-black");
+            piece_palette_orientation = "black";
           }
           fakeboard.classList.value = fakeboardclasses.join(" ");
           if (board_setup_mode) {
@@ -4332,7 +4497,7 @@
           return str.length === 1 && str.match(/[a-z]/i);
         }
 
-        function changePieceSet(piece_set) {
+        function changePieceSet(piece_set, save_to_local_storage) {
           const el = document.getElementById("chessground-container-div");
           const chessgroundmini = document.getElementById(
             "chessground-mini-container-div",
@@ -4350,9 +4515,16 @@
           if (board_setup_mode) {
             triggerBoardSetupPieceIdentifier(false);
           }
+          if (save_to_local_storage) {
+            setVariantTheme(
+              document.getElementById("dropdown-variant").value,
+              piece_set,
+              false,
+            );
+          }
         }
 
-        function changeBoardSet(board_set) {
+        function changeBoardSet(board_set, save_to_local_storage) {
           const el = document.getElementById("chessground-container-div");
           const chessgroundmini = document.getElementById(
             "chessground-mini-container-div",
@@ -4367,6 +4539,13 @@
             }),
           );
           updateThemeDropdowns(null, board_set);
+          if (save_to_local_storage) {
+            setVariantTheme(
+              document.getElementById("dropdown-variant").value,
+              board_set,
+              true,
+            );
+          }
         }
 
         function changeUI(ui_id, save_to_local_storage, change_canvas) {
@@ -4620,7 +4799,7 @@
           return dropdown ? dropdown.value : "";
         };
         const variantDisplayName = (id) =>
-          id == "" ? "Chess" : getVariantName(id, true, false);
+          id == "" ? "Loading..." : getVariantName(id, true, false);
         const variantTypeLabel = (type) =>
           type == NOT_CLASSIFIED || !type ? "Other" : type;
         const positionVariantsFor = (id) => {
@@ -5319,7 +5498,9 @@
           if (chess960 && chess960.checked != state.chess960) {
             chess960.click();
           }
-          if (state.variant != "") {
+          if (state.variant == "") {
+            selectVariant("chess");
+          } else {
             selectVariant(state.variant);
           }
           if (state.fen == "" && state.moves == "") {
@@ -5438,6 +5619,7 @@
             "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12",
           install:
             "M12 3v12M8 11l4 4 4-4M3 17v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2",
+          dice: "m 7,4.5 a 3,3 0 0 0 -3,3 v 10 a 3,3 0 0 0 3,3 h 10 a 3,3 0 0 0 3,-3 v -10 a 3,3 0 0 0 -3,-3 z M 8,10 a 1.5,1.5 0 1 1 0,-3 1.5,1.5 0 0 1 0,3 m 8,0 a 1.5,1.5 0 1 1 0,-3 1.5,1.5 0 0 1 0,3 m 1.5,6.5 a 1.5,1.5 0 1 1 -3,0 1.5,1.5 0 0 1 3,0 M 8,18 a 1.5,1.5 0 1 1 0,-3 1.5,1.5 0 0 1 0,3",
         };
 
         const icon = (name, size) => {
@@ -5469,7 +5651,49 @@
             "[?]",
           );
 
-        const isDarkUITheme = (id) => /dark|stars|bubbles/i.test(id || "");
+        const isDarkUITheme = (id) =>
+          getComputedStyle($(":root")).colorScheme.toLowerCase() == "dark";
+
+        let integer_input_engine_depth = "";
+        let integer_input_engine_movetime = "";
+        let integer_input_engine_nodes = "";
+        let integer_input_engine_hash = "";
+        let integer_input_engine_threads = "";
+        let integer_input_engine_multipv = "";
+
+        // let integer_input_white_start_time = default_start_time;
+        // let integer_input_white_time_increment = default_time_increment;
+        // let integer_input_white_byoyomi_periods = default_byoyomi_periods;
+        // let integer_input_white_byoyomi_period_length = default_byoyomi_period_length;
+        // let integer_input_white_timeout_margin = default_timeout_margin;
+        // let integer_input_white_depth = default_depth;
+        // let integer_input_white_movetime = default_movetime;
+        // let integer_input_white_nodes = default_nodes;
+        // let integer_input_black_start_time = default_start_time;
+        // let integer_input_black_time_increment = default_time_increment;
+        // let integer_input_black_byoyomi_periods = default_byoyomi_periods;
+        // let integer_input_black_byoyomi_period_length = default_byoyomi_period_length;
+        // let integer_input_black_timeout_margin = default_timeout_margin;
+        // let integer_input_black_depth = default_depth;
+        // let integer_input_black_movetime = default_movetime;
+        // let integer_input_black_nodes = default_nodes;
+
+        let integer_input_white_start_time = "";
+        let integer_input_white_time_increment = "";
+        let integer_input_white_byoyomi_periods = "";
+        let integer_input_white_byoyomi_period_length = "";
+        let integer_input_white_timeout_margin = "";
+        let integer_input_white_depth = "";
+        let integer_input_white_movetime = "";
+        let integer_input_white_nodes = "";
+        let integer_input_black_start_time = "";
+        let integer_input_black_time_increment = "";
+        let integer_input_black_byoyomi_periods = "";
+        let integer_input_black_byoyomi_period_length = "";
+        let integer_input_black_timeout_margin = "";
+        let integer_input_black_depth = "";
+        let integer_input_black_movetime = "";
+        let integer_input_black_nodes = "";
 
         // Switch infinite analysis on or off from anywhere in the UI.
         // Turning it on releases the players and the time control (they
@@ -5537,69 +5761,155 @@
           return `${ms / 1000} s`;
         };
         const timeSliders = (side, mode, tc) =>
-          m("div.sliders.timecontrol", { hidden: mode == "infinite" }, [
-            sliderRow(
-              mode == "time per move" ? "Time per move" : "Start time",
-              formatClock(startTimeSteps[tc.start]),
-              0,
-              startTimeSteps.length - 1,
-              tc.start,
-              (value) => {
-                tc.start = value;
-              },
-              "The time at the beginning of the game.",
-            ),
-            mode == "tournament"
-              ? sliderRow(
-                  "Increment",
-                  formatClock(incrementSteps[tc.gain]),
-                  0,
-                  incrementSteps.length - 1,
-                  tc.gain,
-                  (value) => {
-                    tc.gain = value;
-                  },
-                  "Time added after every move.",
-                )
-              : null,
-            mode == "byoyomi"
-              ? sliderRow(
-                  "Byo-yomi period",
-                  formatClock(byoyomiSteps[tc.byoyomi]),
-                  0,
-                  byoyomiSteps.length - 1,
-                  tc.byoyomi,
-                  (value) => {
-                    tc.byoyomi = value;
-                  },
-                  "Length of each byo-yomi period.",
-                )
-              : null,
-            mode == "byoyomi"
-              ? sliderRow(
-                  "Periods",
-                  tc.periods,
-                  1,
-                  10,
-                  tc.periods,
-                  (value) => {
-                    tc.periods = value;
-                  },
-                  "Number of byo-yomi periods.",
-                )
-              : null,
-            sliderRow(
-              "Timeout margin",
-              formatClock(marginSteps[tc.margin]),
-              0,
-              marginSteps.length - 1,
-              tc.margin,
-              (value) => {
-                tc.margin = value;
-              },
-              "The time may be exceeded by this much before the side loses on time.",
-            ),
-          ]);
+          m(
+            `div.${use_integer_inputs ? "integer-inputs" : "sliders"}.timecontrol`,
+            { hidden: mode == "infinite" },
+            [
+              use_integer_inputs
+                ? integerInput(
+                    mode == "time per move"
+                      ? "Time per move (ms)"
+                      : "Start time (ms)",
+                    "1",
+                    "",
+                    default_start_time,
+                    (value) => {
+                      if (side == "white") {
+                        integer_input_white_start_time = value;
+                      } else {
+                        integer_input_black_start_time = value;
+                      }
+                    },
+                    "The time in milliseconds at the beginning of the game.",
+                    true,
+                  )
+                : sliderRow(
+                    mode == "time per move" ? "Time per move" : "Start time",
+                    formatClock(startTimeSteps[tc.start]),
+                    0,
+                    startTimeSteps.length - 1,
+                    tc.start,
+                    (value) => {
+                      tc.start = value;
+                    },
+                    "The time at the beginning of the game.",
+                  ),
+              m("div", { hidden: mode != "tournament" }, [
+                use_integer_inputs
+                  ? integerInput(
+                      "Time Increment (ms)",
+                      "0",
+                      "",
+                      default_time_increment,
+                      (value) => {
+                        if (side == "white") {
+                          integer_input_white_time_increment = value;
+                        } else {
+                          integer_input_black_time_increment = value;
+                        }
+                      },
+                      "Time in milliseconds added after every move.",
+                      true,
+                    )
+                  : sliderRow(
+                      "Increment",
+                      formatClock(incrementSteps[tc.gain]),
+                      0,
+                      incrementSteps.length - 1,
+                      tc.gain,
+                      (value) => {
+                        tc.gain = value;
+                      },
+                      "Time added after every move.",
+                    ),
+              ]),
+              m("div", { hidden: mode != "byoyomi" }, [
+                use_integer_inputs
+                  ? integerInput(
+                      "Byo-yomi period length (ms)",
+                      "0",
+                      "",
+                      default_byoyomi_period_length,
+                      (value) => {
+                        if (side == "white") {
+                          integer_input_white_byoyomi_period_length = value;
+                        } else {
+                          integer_input_black_byoyomi_period_length = value;
+                        }
+                      },
+                      "Length in milliseconds of each byo-yomi period.",
+                      true,
+                    )
+                  : sliderRow(
+                      "Byo-yomi period",
+                      formatClock(byoyomiSteps[tc.byoyomi]),
+                      0,
+                      byoyomiSteps.length - 1,
+                      tc.byoyomi,
+                      (value) => {
+                        tc.byoyomi = value;
+                      },
+                      "Length of each byo-yomi period.",
+                    ),
+              ]),
+              m("div", { hidden: mode != "byoyomi" }, [
+                use_integer_inputs
+                  ? integerInput(
+                      "Byo-yomi period count",
+                      "1",
+                      "",
+                      default_byoyomi_periods,
+                      (value) => {
+                        if (side == "white") {
+                          integer_input_white_byoyomi_periods = value;
+                        } else {
+                          integer_input_black_byoyomi_periods = value;
+                        }
+                      },
+                      "Number of byo-yomi periods.",
+                      true,
+                    )
+                  : sliderRow(
+                      "Periods",
+                      tc.periods,
+                      1,
+                      10,
+                      tc.periods,
+                      (value) => {
+                        tc.periods = value;
+                      },
+                      "Number of byo-yomi periods.",
+                    ),
+              ]),
+              use_integer_inputs
+                ? integerInput(
+                    "Timeout margin (ms)",
+                    "0",
+                    "",
+                    default_timeout_margin,
+                    (value) => {
+                      if (side == "white") {
+                        integer_input_white_timeout_margin = value;
+                      } else {
+                        integer_input_black_timeout_margin = value;
+                      }
+                    },
+                    "The time may be exceeded by this much milliseconds before this side loses on time.",
+                    true,
+                  )
+                : sliderRow(
+                    "Timeout margin",
+                    formatClock(marginSteps[tc.margin]),
+                    0,
+                    marginSteps.length - 1,
+                    tc.margin,
+                    (value) => {
+                      tc.margin = value;
+                    },
+                    "The time may be exceeded by this much before this side loses on time.",
+                  ),
+            ],
+          );
 
         const allLimitsInfinite = () =>
           engine_depth_index >= depthSteps.length &&
@@ -5628,6 +5938,46 @@
               disabled: stockfish_state != "READY",
               oninput: (e) => {
                 onchange(parseInt(e.target.value));
+              },
+            }),
+          ]);
+
+        //min, max, value can be strings
+        const integerInput = (
+          label,
+          min,
+          max,
+          value,
+          onchangefn,
+          help,
+          usedefault = false,
+        ) =>
+          m("div.integerrow", { title: help }, [
+            m("input[type=number]", {
+              placeholder: label,
+              min: isNaN(parseInt(min)) ? "-2147483648" : min,
+              max: isNaN(parseInt(max)) ? "2147483647" : max,
+              step: "1",
+              //defaultValue: value,
+              disabled: stockfish_state != "READY",
+              onchange: (e) => {
+                let number = parseInt(e.target.value);
+                if (!usedefault && e.target.value) {
+                  onchangefn("");
+                } else if (isNaN(number)) {
+                  if (isNaN(parseInt(e.target.defaultValue))) {
+                    onchangefn("");
+                  } else {
+                    onchangefn(parseInt(e.target.defaultValue));
+                  }
+                }
+                if (number < parseInt(e.target.min)) {
+                  onchangefn(parseInt(e.target.min));
+                } else if (number > parseInt(e.target.max)) {
+                  onchangefn(parseInt(e.target.max));
+                } else {
+                  onchangefn(parseInt(number));
+                }
               },
             }),
           ]);
@@ -5706,6 +6056,8 @@
           force_stop();
           game_over = true;
           game_outcome = { result: result, reason: reason };
+          document.getElementById("isgamestarted").checked =
+            game_started = false;
           m.redraw();
         };
 
@@ -5715,6 +6067,8 @@
           } else {
             finishGame("*", "aborted");
           }
+          document.getElementById("isgamestarted").checked =
+            game_started = false;
         };
 
         const outcomeText = (outcome) => {
@@ -5775,10 +6129,31 @@
             if (!clock && isEngineSide(game)) {
               limit =
                 game.mode == "depth"
-                  ? { type: "depth", value: depthSteps[game.depth] }
+                  ? {
+                      type: "depth",
+                      value: use_integer_inputs
+                        ? side == "white"
+                          ? integer_input_white_depth || default_depth
+                          : integer_input_black_depth || default_depth
+                        : depthSteps[game.depth],
+                    }
                   : game.mode == "nodes"
-                    ? { type: "nodes", value: nodesSteps[game.nodes] }
-                    : { type: "movetime", value: movetimeSteps[game.movetime] };
+                    ? {
+                        type: "nodes",
+                        value: use_integer_inputs
+                          ? side == "white"
+                            ? integer_input_white_nodes || default_nodes
+                            : integer_input_black_nodes || default_nodes
+                          : nodesSteps[game.nodes],
+                      }
+                    : {
+                        type: "movetime",
+                        value: use_integer_inputs
+                          ? side == "white"
+                            ? integer_input_white_movetime || default_movetime
+                            : integer_input_black_movetime || default_movetime
+                          : movetimeSteps[game.movetime],
+                      };
             }
             if (side == "white") {
               engine_limit_white = limit;
@@ -5859,6 +6234,8 @@
               document.getElementById("randommovergo").click();
             }
           }, 250);
+          document.getElementById("isgamestarted").checked =
+            game_started = true;
         };
 
         const endGame = () => {
@@ -5962,7 +6339,7 @@
               choices.push({
                 value,
                 selected,
-                title: `${promoted ? "Promoted " : ""}${white ? "white" : "black"} ${letter}`,
+                title: `${promoted ? "Promoted " : ""}${white ? "white" : "black"} ${letter} (${white ? "First" : "Second"} mover)`,
                 pieceClass: `${promoted ? "p" : ""}${letter.toLowerCase()}-piece ${white ? "white" : "black"}`,
               });
             }
@@ -6095,7 +6472,7 @@
                       "span.type",
                       variantTypeLabel(
                         currentVariantId() == ""
-                          ? getVariantType("chess")
+                          ? "please wait..."
                           : getVariantType(currentVariantId()),
                       ),
                     ),
@@ -6271,10 +6648,31 @@
           // ---------------- board column ----------------
           const boardcol = m("section.boardcol#boardcol", [
             m("div.playerbar.top", [
-              m("div.avatar", icon(playerIcon(game_black), 16)),
+              m(
+                "div.avatar",
+                board_orientation == "white"
+                  ? icon(playerIcon(game_black), 16)
+                  : icon(playerIcon(game_white), 16),
+              ),
               m("div", [
-                m("p.name", playerName(game_black, "Black")),
-                m("p.sub", "Second mover"),
+                board_orientation == "white"
+                  ? m(
+                      "p.name",
+                      playerName(
+                        game_black,
+                        playerColor(mover_color_scheme, "black"),
+                      ),
+                    )
+                  : m(
+                      "p.name",
+                      playerName(
+                        game_white,
+                        playerColor(mover_color_scheme, "white"),
+                      ),
+                    ),
+                board_orientation == "white"
+                  ? m("p.sub", "Second mover")
+                  : m("p.sub", "First mover"),
               ]),
             ]),
             m(
@@ -6299,10 +6697,31 @@
               m("div.cg-wrap.pocket-bottom", [m("div#pocket-bottom")]),
             ]),
             m("div.playerbar.bottom", [
-              m("div.avatar", icon(playerIcon(game_white), 16)),
+              m(
+                "div.avatar",
+                board_orientation == "white"
+                  ? icon(playerIcon(game_white), 16)
+                  : icon(playerIcon(game_black), 16),
+              ),
               m("div", [
-                m("p.name", playerName(game_white, "White")),
-                m("p.sub", "First mover"),
+                board_orientation == "white"
+                  ? m(
+                      "p.name",
+                      playerName(
+                        game_white,
+                        playerColor(mover_color_scheme, "white"),
+                      ),
+                    )
+                  : m(
+                      "p.name",
+                      playerName(
+                        game_black,
+                        playerColor(mover_color_scheme, "black"),
+                      ),
+                    ),
+                board_orientation == "white"
+                  ? m("p.sub", "First mover")
+                  : m("p.sub", "Second mover"),
               ]),
             ]),
             m(
@@ -6447,8 +6866,7 @@
                   {
                     type: "button",
                     disabled: !is_ready,
-                    title:
-                      "Place a wall\nClick to place a wall only (Requires entering choice in prompt dialog).",
+                    title: "Place a wall\nClick to place a wall only.",
                   },
                   icon("wall"),
                 ),
@@ -6458,11 +6876,11 @@
                     type: "button",
                     title: "Flip board",
                     onclick: () => {
-                      if (board_setup_mode) {
-                        setTimeout(() => {
+                      setTimeout(() => {
+                        if (board_setup_mode) {
                           triggerBoardSetupPieceIdentifier(false);
-                        }, 50);
-                      }
+                        }
+                      }, 50);
                     },
                   },
                   icon("flip"),
@@ -6572,7 +6990,7 @@
                   "label#label-clearlogonstartthinking.toggle",
                   {
                     title:
-                      "When checked, automatically clear the console of the binary engine when it starts thinking.",
+                      "When checked, automatically clear the console of the engine that starts thinking.",
                   },
                   [
                     m("input[type=checkbox]#clearlogonstartthinking", {
@@ -6589,7 +7007,7 @@
                   "button.sm",
                   {
                     type: "button",
-                    title: "Click to clear the consoles of the binary engines.",
+                    title: "Click to clear all consoles.",
                     onclick: () => {
                       first_engine_output = "";
                       second_engine_output = "";
@@ -6601,6 +7019,7 @@
                       document.getElementById(
                         "analysisengineoutput",
                       ).textContent = "";
+                      engineoutput = "";
                       scrollOutput();
                     },
                   },
@@ -6678,6 +7097,7 @@
               ]),
               m("div#evaluation", { hidden: !analysis_mode }, [
                 m("div#evalbar", [m("p#cp", "0.00"), m("div#evalbarprogress")]),
+                m("p#evalcomment", ""),
                 m("p#evalinfo", ""),
                 m("p#pvinfo", ""),
               ]),
@@ -6722,10 +7142,14 @@
               ]),
               m("p#positioninfo", ""),
               m("p#checkcounts"),
-              m("p#label-pgn"),
+              m("p#label-pgn", {
+                oncontextmenu: (e) => {
+                  e.preventDefault();
+                },
+              }),
               m(
                 "div#pgn-operation-container.pgntools",
-                { hidden: !advanced_pgn_mode },
+                { hidden: !advanced_pgn_mode || game_started },
                 [
                   m("div.row", [
                     m("span.label", "PGN tools"),
@@ -7008,7 +7432,7 @@
                   }),
                 ]),
 
-                m("div.sliders", [
+                m("div.sliders", { hidden: use_integer_inputs }, [
                   sliderRow(
                     "Lines",
                     engine_multipv,
@@ -7043,7 +7467,7 @@
                     "Size of the engine's hash table.",
                   ),
                 ]),
-                m("div.sliders", [
+                m("div.sliders", { hidden: use_integer_inputs }, [
                   sliderRow(
                     "Depth",
                     limitLabel(depthSteps, engine_depth_index, (v) =>
@@ -7085,6 +7509,71 @@
                   ),
                 ]),
 
+                m("div.integer-inputs", { hidden: !use_integer_inputs }, [
+                  integerInput(
+                    "Depth",
+                    "1",
+                    "255",
+                    "",
+                    (value) => {
+                      integer_input_engine_depth = value;
+                    },
+                    "Stop the analysis at this depth.",
+                  ),
+                  integerInput(
+                    "Move Time (ms)",
+                    "1",
+                    "",
+                    "",
+                    (value) => {
+                      integer_input_engine_movetime = value;
+                    },
+                    "Stop the analysis after this time in milliseconds.",
+                  ),
+                  integerInput(
+                    "Nodes",
+                    "1",
+                    "",
+                    "",
+                    (value) => {
+                      integer_input_engine_nodes = value;
+                    },
+                    "Stop the analysis after this many nodes.",
+                  ),
+                ]),
+                m("div.integer-inputs", { hidden: !use_integer_inputs }, [
+                  integerInput(
+                    "MultiPV",
+                    "1",
+                    "500",
+                    "",
+                    (value) => {
+                      integer_input_engine_multipv = value;
+                    },
+                    "Number of principal variations (engine lines) shown.",
+                  ),
+                  integerInput(
+                    "Threads",
+                    "1",
+                    "512",
+                    "",
+                    (value) => {
+                      integer_input_engine_threads = value;
+                    },
+                    "Parallel search threads of in browser Fairy-Stockfish.",
+                  ),
+                  integerInput(
+                    "Hash",
+                    "1",
+                    "33554432",
+                    "",
+                    (value) => {
+                      integer_input_engine_hash = value;
+                    },
+                    "Size of the engine's hash table in megabytes.",
+                  ),
+                ]),
+
                 m(
                   "p.hint",
                   'These settings apply to the engine analysis. Players, strength and time control of a game are chosen in "New game".',
@@ -7106,35 +7595,47 @@
                 m("div.hiddeninputs", [
                   m("input[type=number]#depth", {
                     hidden: true,
-                    value: limitValue(depthSteps, engine_depth_index),
+                    value: use_integer_inputs
+                      ? integer_input_engine_depth
+                      : limitValue(depthSteps, engine_depth_index),
                     min: 1,
                     max: 255,
                   }),
                   m("input[type=number]#movetime", {
                     hidden: true,
-                    value: limitValue(movetimeSteps, engine_movetime_index),
-                    min: 0,
+                    value: use_integer_inputs
+                      ? integer_input_engine_movetime
+                      : limitValue(movetimeSteps, engine_movetime_index),
+                    min: 1,
                   }),
                   m("input[type=number]#nodes", {
                     hidden: true,
-                    value: limitValue(nodesSteps, engine_nodes_index),
+                    value: use_integer_inputs
+                      ? integer_input_engine_nodes
+                      : limitValue(nodesSteps, engine_nodes_index),
                     min: 1,
                   }),
                   m("input[type=number]#threads", {
                     hidden: true,
-                    value: engine_threads,
+                    value: use_integer_inputs
+                      ? integer_input_engine_threads
+                      : engine_threads,
                     min: 1,
                     max: 512,
                   }),
                   m("input[type=number]#hash", {
                     hidden: true,
-                    value: hashSteps[engine_hash_index],
+                    value: use_integer_inputs
+                      ? integer_input_engine_hash
+                      : hashSteps[engine_hash_index],
                     min: 1,
                     max: 33554432,
                   }),
                   m("input[type=number]#multipv", {
                     hidden: true,
-                    value: engine_multipv,
+                    value: use_integer_inputs
+                      ? integer_input_engine_multipv
+                      : engine_multipv,
                     min: 1,
                     max: 500,
                   }),
@@ -7205,7 +7706,7 @@
                       ),
                     ]),
                     m("div#whiteenginesettings", [
-                      m("p", "1st binary engine (white)"),
+                      m("p", "1st binary engine (First mover)"),
                       m("input[type=number]#whitedepth", {
                         placeholder: "Depth",
                         title:
@@ -7243,7 +7744,7 @@
                       ),
                     ]),
                     m("div#blackenginesettings", [
-                      m("p", "2nd binary engine (black)"),
+                      m("p", "2nd binary engine (Second mover)"),
                       m("input[type=number]#blackdepth", {
                         placeholder: "Depth",
                         title:
@@ -7432,8 +7933,8 @@
                       hidden: true,
                       onclick: () => {
                         setupThemeDropdowns();
-                        changePieces(true);
-                        changeBoard(true);
+                        initPieceTheme();
+                        initBoardTheme();
                       },
                     },
                     "Initialize Themes (internal)",
@@ -7602,6 +8103,15 @@
                     { hidden: true },
                     "Advanced PGN Cross Domain Handler (internal)",
                   ),
+                  m("input[type=checkbox]#isgamestarted", {
+                    hidden: true,
+                  }),
+                  m("p#boardorientation", {
+                    hidden: true,
+                    onclick: (e) => {
+                      board_orientation = e.target.textContent;
+                    },
+                  }),
                 ]),
                 ,
                 m("input[type=checkbox]#isenginematchmode", {
@@ -7851,7 +8361,8 @@
                   "button.sm.primary",
                   {
                     type: "button",
-                    title: "Leave the board editor and use the position",
+                    title:
+                      'Leave board editor. Changes made in "board editor" section that are not applied will be discarded.',
                     onclick: () => {
                       leaveSetup();
                     },
@@ -8104,9 +8615,10 @@
                               "div.palettewrap",
                               { class: pieceThemeClasses() },
                               [
-                                m("div.cg-wrap", [
-                                  m("piece", { class: choice.pieceClass }),
-                                ]),
+                                m(
+                                  `div.cg-wrap.orientation-${piece_palette_orientation}`,
+                                  [m("piece", { class: choice.pieceClass })],
+                                ),
                               ],
                             ),
                       ),
@@ -8115,6 +8627,10 @@
                   m(
                     "p.hint",
                     "Pick a piece, then click a square to place it. Drag pieces to move them, drop them off the board to remove them.",
+                  ),
+                  m(
+                    "p.hint",
+                    'Changes made here will not be effective until you click "Apply" button.',
                   ),
                   m(
                     "select#dropdown-setpiece",
@@ -8184,53 +8700,55 @@
                       m("option", { value: "R" }, "R"),
                     ],
                   ),
-                  m(
-                    "button#addtopocket.sm",
-                    {
-                      type: "button",
-                      disabled: !is_ready,
-                      title:
-                        "Click to add the piece selected in the dropdown to pocket.",
-                    },
-                    "Add to pocket",
-                  ),
-                  m(
-                    "button#clearboard.sm",
-                    {
-                      type: "button",
-                      disabled: !is_ready,
-                      title: "Click to remove all pieces.",
-                    },
-                    "Clear board",
-                  ),
-                  m(
-                    "button#initboardpos.sm",
-                    {
-                      type: "button",
-                      disabled: !is_ready,
-                      title: "Click to set the board to default position.",
-                    },
-                    "Reset board",
-                  ),
-                  m(
-                    "button#validatepos.sm.soft",
-                    {
-                      type: "button",
-                      disabled: !is_ready,
-                      title: "Click to validate this position.",
-                    },
-                    "Validate",
-                  ),
-                  m(
-                    "button#boardsetupcopyfen.sm.primary",
-                    {
-                      type: "button",
-                      disabled: !is_ready,
-                      title:
-                        "Click to set the position, and then uncheck Board Setup to play or analyze.",
-                    },
-                    "Apply",
-                  ),
+                  m("div#boardeditorbuttons", [
+                    m(
+                      "button#addtopocket.sm",
+                      {
+                        type: "button",
+                        disabled: !is_ready,
+                        title:
+                          "Click to add the piece selected in the dropdown to pocket.",
+                      },
+                      "Add to pocket",
+                    ),
+                    m(
+                      "button#clearboard.sm",
+                      {
+                        type: "button",
+                        disabled: !is_ready,
+                        title: "Click to remove all pieces.",
+                      },
+                      "Clear board",
+                    ),
+                    m(
+                      "button#initboardpos.sm",
+                      {
+                        type: "button",
+                        disabled: !is_ready,
+                        title: "Click to set the board to default position.",
+                      },
+                      "Reset board",
+                    ),
+                    m(
+                      "button#validatepos.sm.soft",
+                      {
+                        type: "button",
+                        disabled: !is_ready,
+                        title: "Click to validate this position.",
+                      },
+                      "Validate",
+                    ),
+                    m(
+                      "button#boardsetupcopyfen.sm.primary",
+                      {
+                        type: "button",
+                        disabled: !is_ready,
+                        title:
+                          "Click to set the position, and then uncheck Board Setup to play or analyze.",
+                      },
+                      "Apply",
+                    ),
+                  ]),
                 ]),
                 m("div#pocketpiecechange", { hidden: true }, [
                   m("form#pieceinpocket", { disabled: !is_ready }, [
@@ -8515,7 +9033,9 @@
               ]),
               m(
                 "div.betzaboard",
-                { style: `--betza-size:${preview.size}` },
+                {
+                  style: `--betza-size:${preview.size}; --betza-rows:${Math.ceil(rows.length / preview.size)};`,
+                },
                 rows,
               ),
               m("div.betzalegend", [
@@ -8822,35 +9342,108 @@
             const engine = isEnginePlayer(game.player);
             const modeOptions = engine
               ? [
-                  ["movetime", "Time per move"],
-                  ["depth", "Depth"],
-                  ["nodes", "Nodes"],
-                  ["tournament", "Tournament clock"],
-                  ["hourglass", "Hourglass clock"],
-                  ["byoyomi", "Byo-yomi clock"],
+                  [
+                    "movetime",
+                    "Time per move",
+                    "This player needs to make each move within a fixed search time limit.",
+                  ],
+                  [
+                    "depth",
+                    "Depth per move",
+                    "This player needs to make each move within a fixed search depth limit.",
+                  ],
+                  [
+                    "nodes",
+                    "Nodes per move",
+                    "This player needs to make each move within a fixed search node limit.",
+                  ],
+                  [
+                    "tournament",
+                    "Tournament clock",
+                    "This player has limited time and may get a time increment after a move.",
+                  ],
+                  [
+                    "hourglass",
+                    "Hourglass clock",
+                    "This player has limited time and used time will be added to opponent's time.",
+                  ],
+                  [
+                    "byoyomi",
+                    "Byo-yomi clock",
+                    "This player will enter the countdown (byoyomi) period(s) after their initial time runs out. During countdown periods, if the player make a move before the countdown period time runs out, the time will be reset to full time of countdown periods, otherwise the remaining period count will be decreased by 1 and the time will be reset to full time of countdown periods. If there's no countdown periods left and the remaining time runs out, this player runs out of time.",
+                  ],
                 ]
               : [
-                  ["infinite", "No clock"],
-                  ["tournament", "Tournament"],
-                  ["time per move", "Time per move"],
-                  ["hourglass", "Hourglass"],
-                  ["byoyomi", "Byo-yomi"],
+                  ["infinite", "No clock", "This player has infinite time."],
+                  [
+                    "tournament",
+                    "Tournament",
+                    "This player has limited time and may get a time increment after a move.",
+                  ],
+                  [
+                    "time per move",
+                    "Time per move",
+                    "This player needs to make each move within a fixed time limit.",
+                  ],
+                  [
+                    "hourglass",
+                    "Hourglass",
+                    "This player has limited time and used time will be added to opponent's time.",
+                  ],
+                  [
+                    "byoyomi",
+                    "Byo-yomi",
+                    "This player will enter the countdown (byoyomi) period(s) after their initial time runs out. During countdown periods, if the player make a move before the countdown period time runs out, the time will be reset to full time of countdown periods, otherwise the remaining period count will be decreased by 1 and the time will be reset to full time of countdown periods. If there's no countdown periods left and the remaining time runs out, this player runs out of time.",
+                  ],
                 ];
-            const limitRow =
-              game.mode == "depth"
-                ? sliderRow(
-                    "Depth",
-                    String(depthSteps[game.depth]),
-                    0,
-                    depthSteps.length - 1,
-                    game.depth,
-                    (value) => {
-                      game.depth = value;
-                    },
-                    "Search depth per move.",
-                  )
-                : game.mode == "nodes"
-                  ? sliderRow(
+            const limitRow = m("div", [
+              m("div", { hidden: game.mode != "depth" }, [
+                use_integer_inputs
+                  ? integerInput(
+                      "Depth",
+                      "1",
+                      "255",
+                      default_depth,
+                      (value) => {
+                        if (side == "white") {
+                          integer_input_white_depth = value;
+                        } else {
+                          integer_input_black_depth = value;
+                        }
+                      },
+                      "Search depth per move.",
+                      true,
+                    )
+                  : sliderRow(
+                      "Depth",
+                      String(depthSteps[game.depth]),
+                      0,
+                      depthSteps.length - 1,
+                      game.depth,
+                      (value) => {
+                        game.depth = value;
+                      },
+                      "Search depth per move.",
+                    ),
+              ]),
+              m("div", { hidden: game.mode != "nodes" }, [
+                use_integer_inputs
+                  ? integerInput(
+                      "Nodes",
+                      "1",
+                      "",
+                      default_nodes,
+                      (value) => {
+                        if (side == "white") {
+                          integer_input_white_nodes = value;
+                        } else {
+                          integer_input_black_nodes = value;
+                        }
+                      },
+                      "Searched nodes per move.",
+                      true,
+                    )
+                  : sliderRow(
                       "Nodes",
                       formatNodes(nodesSteps[game.nodes]),
                       0,
@@ -8860,20 +9453,38 @@
                         game.nodes = value;
                       },
                       "Searched nodes per move.",
+                    ),
+              ]),
+              m("div", { hidden: game.mode != "movetime" }, [
+                use_integer_inputs
+                  ? integerInput(
+                      "Move Time (ms)",
+                      "1",
+                      "",
+                      default_movetime,
+                      (value) => {
+                        if (side == "white") {
+                          integer_input_white_movetime = value;
+                        } else {
+                          integer_input_black_movetime = value;
+                        }
+                      },
+                      "Thinking time per move in milliseconds.",
+                      true,
                     )
-                  : game.mode == "movetime"
-                    ? sliderRow(
-                        "Time per move",
-                        formatSeconds(movetimeSteps[game.movetime]),
-                        0,
-                        movetimeSteps.length - 1,
-                        game.movetime,
-                        (value) => {
-                          game.movetime = value;
-                        },
-                        "Thinking time per move.",
-                      )
-                    : null;
+                  : sliderRow(
+                      "Time per move",
+                      formatSeconds(movetimeSteps[game.movetime]),
+                      0,
+                      movetimeSteps.length - 1,
+                      game.movetime,
+                      (value) => {
+                        game.movetime = value;
+                      },
+                      "Thinking time per move.",
+                    ),
+              ]),
+            ]);
             return m("div.sidesetup", [
               m("span.sect", label),
               m("div.nums.two", [
@@ -8943,18 +9554,30 @@
                           onchange: (e) => {
                             game.mode = e.target.value;
                           },
+                          title: engine
+                            ? "Change engine move control here."
+                            : "Change time control here.",
                         },
-                        modeOptions.map(([value, text]) =>
+                        modeOptions.map(([value, text, title]) =>
                           m(
                             "option",
-                            { value, selected: game.mode == value },
+                            {
+                              value,
+                              selected: game.mode == value,
+                              title: title,
+                            },
                             text,
                           ),
                         ),
                       ),
                     ]),
               ]),
-              limitRow ? m("div.sliders.timecontrol", [limitRow]) : null,
+              limitRow
+                ? m(
+                    `div.${use_integer_inputs ? "integer-inputs" : "sliders"}.timecontrol`,
+                    [limitRow],
+                  )
+                : null,
               isClockMode(game.mode) ? timeSliders(side, game.mode, tc) : null,
             ]);
           };
@@ -9010,12 +9633,23 @@
                   ? "The game continues from the position on the board."
                   : "The game starts from the initial position; the moves on the board are cleared. Choose the variant and start position in the top bar.",
               ),
-              sideSetup("white", "White", game_white, tc_white),
-              sideSetup("black", "Black", game_black, tc_black),
+              sideSetup(
+                "white",
+                playerColor(mover_color_scheme, "white") + " (First mover)",
+                game_white,
+                tc_white,
+              ),
+              sideSetup(
+                "black",
+                playerColor(mover_color_scheme, "black") + " (Second mover)",
+                game_black,
+                tc_black,
+              ),
+              m("div.hr"),
               anyFsf
                 ? m("div.sliders.timecontrol", [
                     sliderRow(
-                      "Skill level",
+                      "Fairy-Stockfish Skill level",
                       engine_skill,
                       -20,
                       20,
@@ -9136,27 +9770,37 @@
                     timeSliders("white", white_timer_type, tc_white),
                     m("input[type=number]#whitestarttime", {
                       hidden: true,
-                      value: startTimeSteps[tc_white.start],
+                      value: use_integer_inputs
+                        ? integer_input_white_start_time
+                        : startTimeSteps[tc_white.start],
                       min: 1,
                     }),
                     m("input[type=number]#whitetimegain", {
                       hidden: true,
-                      value: incrementSteps[tc_white.gain],
+                      value: use_integer_inputs
+                        ? integer_input_white_time_increment
+                        : incrementSteps[tc_white.gain],
                       min: 0,
                     }),
                     m("input[type=number]#whitebyoyomitime", {
                       hidden: true,
-                      value: byoyomiSteps[tc_white.byoyomi],
+                      value: use_integer_inputs
+                        ? integer_input_white_byoyomi_period_length
+                        : byoyomiSteps[tc_white.byoyomi],
                       min: 1,
                     }),
                     m("input[type=number]#whitebyoyomiperiodcount", {
                       hidden: true,
-                      value: tc_white.periods,
+                      value: use_integer_inputs
+                        ? integer_input_white_byoyomi_periods
+                        : tc_white.periods,
                       min: 1,
                     }),
                     m("input[type=number]#whitetimemargin", {
                       hidden: true,
-                      value: marginSteps[tc_white.margin],
+                      value: use_integer_inputs
+                        ? integer_input_white_timeout_margin
+                        : marginSteps[tc_white.margin],
                       min: 0,
                     }),
                   ]),
@@ -9226,27 +9870,37 @@
                     timeSliders("black", black_timer_type, tc_black),
                     m("input[type=number]#blackstarttime", {
                       hidden: true,
-                      value: startTimeSteps[tc_black.start],
+                      value: use_integer_inputs
+                        ? integer_input_black_start_time
+                        : startTimeSteps[tc_black.start],
                       min: 1,
                     }),
                     m("input[type=number]#blacktimegain", {
                       hidden: true,
-                      value: incrementSteps[tc_black.gain],
+                      value: use_integer_inputs
+                        ? integer_input_black_time_increment
+                        : incrementSteps[tc_black.gain],
                       min: 0,
                     }),
                     m("input[type=number]#blackbyoyomitime", {
                       hidden: true,
-                      value: byoyomiSteps[tc_black.byoyomi],
+                      value: use_integer_inputs
+                        ? integer_input_black_byoyomi_period_length
+                        : byoyomiSteps[tc_black.byoyomi],
                       min: 1,
                     }),
                     m("input[type=number]#blackbyoyomiperiodcount", {
                       hidden: true,
-                      value: tc_black.periods,
+                      value: use_integer_inputs
+                        ? integer_input_black_byoyomi_periods
+                        : tc_black.periods,
                       min: 1,
                     }),
                     m("input[type=number]#blacktimemargin", {
                       hidden: true,
-                      value: marginSteps[tc_black.margin],
+                      value: use_integer_inputs
+                        ? integer_input_black_timeout_margin
+                        : marginSteps[tc_black.margin],
                       min: 0,
                     }),
                   ]),
@@ -9517,6 +10171,7 @@
                               (currentVariantId() == "" && item.id == "chess")
                                 ? "on"
                                 : "",
+                            title: getVariantDescription(item.id, true),
                             onclick: () => {
                               selectVariant(item.id);
                             },
@@ -9636,764 +10291,875 @@
           );
 
           // ---------------- settings drawer ----------------
-          const settingsDrawer = m("div", { hidden: !settings_open }, [
-            m("div.drawerbackdrop", {
-              onclick: () => {
-                settings_open = false;
-              },
-            }),
-            m("aside.drawer.card", [
-              m("div.dialoghead", [
-                m("h2", "Settings"),
-                m(
-                  "button.iconbtn.ghost",
-                  {
-                    type: "button",
-                    title: "Close",
-                    onclick: () => {
-                      settings_open = false;
+          const settingsDrawer = m(
+            "div.settings-ui",
+            { hidden: !settings_open },
+            [
+              m("div.drawerbackdrop", {
+                onclick: () => {
+                  settings_open = false;
+                },
+              }),
+              m("aside.drawer.card", [
+                m("div.dialoghead", [
+                  m("h2", "Settings"),
+                  m(
+                    "button.iconbtn.ghost",
+                    {
+                      type: "button",
+                      title: "Close",
+                      onclick: () => {
+                        settings_open = false;
+                      },
                     },
-                  },
-                  icon("x"),
-                ),
-              ]),
-              m("div#controls.stack", [
-                m("span.sect", "Appearance"),
-                m("div", [
-                  m("div.setting", [
-                    m("span", "Pieces"),
-                    m("div.withbtn", [
-                      m(
-                        "select#dropdown-piecetheme.sm",
-                        {
-                          onchange: () => {
-                            changePieceSet(
-                              $("#dropdown-piecetheme")[
-                                $("#dropdown-piecetheme").selectedIndex
-                              ].value,
-                            );
-                          },
-                        },
-                        [
-                          m("option", { value: "default" }, "Default Pieces"),
-                          m(
-                            "option",
-                            { value: "userdefined" },
-                            getThemeName("userdefined"),
-                          ),
-                        ],
-                      ),
-                      m(
-                        "button.sm.iconbtn",
-                        {
-                          type: "button",
-                          title: "Next piece set",
-                          onclick: () => {
-                            changePieces(false);
-                          },
-                        },
-                        icon("swap", 14),
-                      ),
-                    ]),
-                  ]),
-                  m("div.setting", [
-                    m("span", "Board"),
-                    m("div.withbtn", [
-                      m(
-                        "select#dropdown-boardtheme.sm",
-                        {
-                          onchange: () => {
-                            changeBoardSet(
-                              $("#dropdown-boardtheme")[
-                                $("#dropdown-boardtheme").selectedIndex
-                              ].value,
-                            );
-                          },
-                        },
-                        [
-                          m(
-                            "option",
-                            { value: "defaultboard" },
-                            "Default Board",
-                          ),
-                        ],
-                      ),
-                      m(
-                        "button.sm.iconbtn",
-                        {
-                          type: "button",
-                          title: "Next board",
-                          onclick: () => {
-                            changeBoard(false);
-                          },
-                        },
-                        icon("swap", 14),
-                      ),
-                    ]),
-                  ]),
-                  m("div.setting", [
-                    m("span", "UI theme"),
-                    m("div.withbtn", [
-                      m(
-                        "select#dropdown-uitheme.sm",
-                        {
-                          onchange: () => {
-                            changeUI(
-                              $("#dropdown-uitheme")[
-                                $("#dropdown-uitheme").selectedIndex
-                              ].value,
-                              true,
-                              true,
-                            );
-                          },
-                        },
-                        [m("option", { value: "defaultui" }, "Default UI")],
-                      ),
-                      m(
-                        "button.sm.iconbtn",
-                        {
-                          type: "button",
-                          title: "Next UI theme",
-                          onclick: () => {
-                            let time = Date.now();
-                            if (time - previouschangeuitime < 750) {
-                              return;
-                            }
-                            previouschangeuitime = time;
-                            const uithemesdropdown =
-                              document.getElementById("dropdown-uitheme");
-                            changeUI(
-                              uithemesdropdown[
-                                (uithemesdropdown.selectedIndex + 1) %
-                                  uithemesdropdown.length
-                              ].value,
-                              true,
-                              true,
-                            );
-                          },
-                        },
-                        icon("swap", 14),
-                      ),
-                    ]),
-                  ]),
+                    icon("x"),
+                  ),
                 ]),
-                m("div", [
-                  m("div.setting", [
-                    m("span", "Move notation"),
-                    m(
-                      "select#sannotation.sm",
-                      {
-                        title:
-                          "Select the move notation system that is used in move history and engine principal variations.",
-                        onchange: () => {
-                          const dropdownnotation =
-                            document.getElementById("sannotation");
-                          const evalbar = document.getElementById("evalbar");
-                          const value =
-                            dropdownnotation[dropdownnotation.selectedIndex]
-                              .value;
-                          evalbar.classList.remove("xiangqi");
-                          evalbar.classList.remove("shogi");
-                          evalbar.classList.remove("janggi");
-                          if (/xiangqi|ucci/i.test(value)) {
-                            evalbar.classList.add("xiangqi");
-                          } else if (/shogi|usi/i.test(value)) {
-                            evalbar.classList.add("shogi");
-                          } else if (/janggi/i.test(value)) {
-                            evalbar.classList.add("janggi");
-                          }
+                m("div#controls.stack", [
+                  m("span.sect", "Appearance"),
+                  m("div", [
+                    m("div.setting", [
+                      m("span", "Pieces"),
+                      m("div.withbtn", [
+                        m(
+                          "select#dropdown-piecetheme.sm",
+                          {
+                            onchange: () => {
+                              changePieceSet(
+                                $("#dropdown-piecetheme")[
+                                  $("#dropdown-piecetheme").selectedIndex
+                                ].value,
+                                true,
+                              );
+                            },
+                          },
+                          [
+                            m("option", { value: "default" }, "Default Pieces"),
+                            m(
+                              "option",
+                              { value: "userdefined" },
+                              getThemeName("userdefined"),
+                            ),
+                          ],
+                        ),
+                        m(
+                          "button.sm.iconbtn",
+                          {
+                            type: "button",
+                            title: "Next piece set",
+                            onclick: () => {
+                              const dropdown = document.getElementById(
+                                "dropdown-piecetheme",
+                              );
+                              changePieceSet(
+                                dropdown[
+                                  (dropdown.selectedIndex + 1) % dropdown.length
+                                ].value,
+                                true,
+                              );
+                            },
+                          },
+                          icon("swap", 14),
+                        ),
+                      ]),
+                    ]),
+                    m("div.setting", [
+                      m("span", "Board"),
+                      m("div.withbtn", [
+                        m(
+                          "select#dropdown-boardtheme.sm",
+                          {
+                            onchange: () => {
+                              changeBoardSet(
+                                $("#dropdown-boardtheme")[
+                                  $("#dropdown-boardtheme").selectedIndex
+                                ].value,
+                                true,
+                              );
+                            },
+                          },
+                          [
+                            m(
+                              "option",
+                              { value: "defaultboard" },
+                              "Default Board",
+                            ),
+                          ],
+                        ),
+                        m(
+                          "button.sm.iconbtn",
+                          {
+                            type: "button",
+                            title: "Next board",
+                            onclick: () => {
+                              const dropdown = document.getElementById(
+                                "dropdown-boardtheme",
+                              );
+                              changeBoardSet(
+                                dropdown[
+                                  (dropdown.selectedIndex + 1) % dropdown.length
+                                ].value,
+                                true,
+                              );
+                            },
+                          },
+                          icon("swap", 14),
+                        ),
+                      ]),
+                    ]),
+                    m("div.setting", [
+                      m("span", "UI theme"),
+                      m("div.withbtn", [
+                        m(
+                          "select#dropdown-uitheme.sm",
+                          {
+                            onchange: () => {
+                              changeUI(
+                                $("#dropdown-uitheme")[
+                                  $("#dropdown-uitheme").selectedIndex
+                                ].value,
+                                true,
+                                true,
+                              );
+                            },
+                          },
+                          [m("option", { value: "defaultui" }, "Default UI")],
+                        ),
+                        m(
+                          "button.sm.iconbtn",
+                          {
+                            type: "button",
+                            title: "Next UI theme",
+                            onclick: () => {
+                              let time = Date.now();
+                              if (time - previouschangeuitime < 750) {
+                                return;
+                              }
+                              previouschangeuitime = time;
+                              const uithemesdropdown =
+                                document.getElementById("dropdown-uitheme");
+                              changeUI(
+                                uithemesdropdown[
+                                  (uithemesdropdown.selectedIndex + 1) %
+                                    uithemesdropdown.length
+                                ].value,
+                                true,
+                                true,
+                              );
+                            },
+                          },
+                          icon("swap", 14),
+                        ),
+                      ]),
+                    ]),
+                  ]),
+                  m("div", [
+                    m("div.setting", [
+                      m("span", "Move notation"),
+                      m(
+                        "select#sannotation.sm",
+                        {
+                          title:
+                            "Select the move notation system that is used in move history and engine principal variations.\nPlayer colors will also change based on the notation. (Chess, Janggi, Shogi and Xiangqi have different player colors)",
+                          onchange: () => {
+                            const dropdownnotation =
+                              document.getElementById("sannotation");
+                            const evalbar = document.getElementById("evalbar");
+                            const value =
+                              dropdownnotation[dropdownnotation.selectedIndex]
+                                .value;
+                            evalbar.classList.remove("xiangqi");
+                            evalbar.classList.remove("shogi");
+                            evalbar.classList.remove("janggi");
+                            if (/xiangqi|ucci/i.test(value)) {
+                              evalbar.classList.add("xiangqi");
+                              mover_color_scheme = "xiangqi";
+                            } else if (/shogi|usi/i.test(value)) {
+                              evalbar.classList.add("shogi");
+                              mover_color_scheme = "shogi";
+                            } else if (/janggi/i.test(value)) {
+                              evalbar.classList.add("janggi");
+                              mover_color_scheme = "janggi";
+                            } else {
+                              mover_color_scheme = "chess";
+                            }
+                            localStorage.setItem(
+                              "SanNotation",
+                              dropdownnotation.selectedIndex,
+                            );
+                          },
                         },
-                      },
-                      [
-                        m(
-                          "option",
-                          { value: "" },
-                          "--Select Notation System--",
-                        ),
-                        m(
-                          "option",
-                          { value: "DEFAULT" },
-                          "Standard/Short Algebraic Notation Without Piece Type Omission (DEFAULT)",
-                        ),
-                        m(
-                          "option",
-                          { value: "SAN", selected: true },
-                          "Standard/Short Algebraic Notation (SAN)",
-                        ),
-                        m(
-                          "option",
-                          { value: "LAN" },
-                          "Long Algebraic Notation (LAN)",
-                        ),
-                        m(
-                          "option",
-                          { value: "SHOGI_HOSKING" },
-                          "Shogi Hosking Notation (SHOGI_HOSKING)",
-                        ),
-                        m(
-                          "option",
-                          { value: "SHOGI_HODGES" },
-                          "Shogi George Hodges Notation (SHOGI_HODGES)",
-                        ),
-                        m(
-                          "option",
-                          { value: "SHOGI_HODGES_NUMBER" },
-                          "Shogi George Hodges Number-only Notation (SHOGI_HODGES_NUMBER)",
-                        ),
-                        m(
-                          "option",
-                          { value: "JANGGI" },
-                          "Janggi Notation (JANGGI)",
-                        ),
-                        m(
-                          "option",
-                          { value: "XIANGQI_WXF" },
-                          "World Xiangqi Federation Notation (XIANGQI_WXF)",
-                        ),
-                        m(
-                          "option",
-                          { value: "THAI_SAN" },
-                          "Thai Standard/Short Algebraic Notation (THAI_SAN)",
-                        ),
-                        m(
-                          "option",
-                          { value: "THAI_LAN" },
-                          "Thai Long Algebraic Notation (THAI_LAN)",
-                        ),
-                        m(
-                          "option",
-                          { value: "FEN" },
-                          "Forsyth–Edwards Notation (Fairy-Stockfish) (FEN)",
-                        ),
-                        m(
-                          "option",
-                          { value: "PGN" },
-                          "Portable Game Notation (PGN)",
-                        ),
-                        m(
-                          "option",
-                          { value: "EPD" },
-                          "Extended Position Description (EPD)",
-                        ),
-                        m(
-                          "option",
-                          { value: "FEN+UCIMOVE" },
-                          "Forsyth–Edwards Notation (Fairy-Stockfish) and UCI Moves (FEN+UCIMOVE)",
-                        ),
-                        m(
-                          "option",
-                          { value: "FEN+USIMOVE" },
-                          "Forsyth–Edwards Notation (Fairy-Stockfish) and USI Moves (FEN+USIMOVE)",
-                        ),
-                        m(
-                          "option",
-                          { value: "FEN+UCCIMOVE" },
-                          "Forsyth–Edwards Notation (Fairy-Stockfish) and UCCI (CECP) Moves (FEN+UCCIMOVE)",
-                        ),
-                        m(
-                          "option",
-                          { value: "SFEN+USIMOVE" },
-                          "Shogi Forsyth–Edwards Notation and USI Moves (SFEN+USIMOVE)",
-                        ),
-                      ],
-                    ),
-                  ]),
-                  m("div.setting", [
-                    m("span", "Coordinates"),
+                        [
+                          m(
+                            "option",
+                            { value: "" },
+                            "--Select Notation System--",
+                          ),
+                          m(
+                            "option",
+                            { value: "DEFAULT" },
+                            "Standard/Short Algebraic Notation Without Piece Type Omission (DEFAULT)",
+                          ),
+                          m(
+                            "option",
+                            { value: "SAN" },
+                            "Standard/Short Algebraic Notation (SAN)",
+                          ),
+                          m(
+                            "option",
+                            { value: "LAN" },
+                            "Long Algebraic Notation (LAN)",
+                          ),
+                          m(
+                            "option",
+                            { value: "SHOGI_HOSKING" },
+                            "Shogi Hosking Notation (SHOGI_HOSKING)",
+                          ),
+                          m(
+                            "option",
+                            { value: "SHOGI_HODGES" },
+                            "Shogi George Hodges Notation (SHOGI_HODGES)",
+                          ),
+                          m(
+                            "option",
+                            { value: "SHOGI_HODGES_NUMBER" },
+                            "Shogi George Hodges Number-only Notation (SHOGI_HODGES_NUMBER)",
+                          ),
+                          m(
+                            "option",
+                            { value: "JANGGI" },
+                            "Janggi Notation (JANGGI)",
+                          ),
+                          m(
+                            "option",
+                            { value: "XIANGQI_WXF" },
+                            "World Xiangqi Federation Notation (XIANGQI_WXF)",
+                          ),
+                          m(
+                            "option",
+                            { value: "THAI_SAN" },
+                            "Thai Standard/Short Algebraic Notation (THAI_SAN)",
+                          ),
+                          m(
+                            "option",
+                            { value: "THAI_LAN" },
+                            "Thai Long Algebraic Notation (THAI_LAN)",
+                          ),
+                          m(
+                            "option",
+                            { value: "FEN" },
+                            "Forsyth–Edwards Notation (Fairy-Stockfish) (FEN)",
+                          ),
+                          m(
+                            "option",
+                            { value: "PGN" },
+                            "Portable Game Notation (PGN)",
+                          ),
+                          m(
+                            "option",
+                            { value: "EPD" },
+                            "Extended Position Description (EPD)",
+                          ),
+                          m(
+                            "option",
+                            { value: "FEN+UCIMOVE" },
+                            "Forsyth–Edwards Notation (Fairy-Stockfish) and UCI Moves (FEN+UCIMOVE)",
+                          ),
+                          m(
+                            "option",
+                            { value: "FEN+USIMOVE" },
+                            "Forsyth–Edwards Notation (Fairy-Stockfish) and USI Moves (FEN+USIMOVE)",
+                          ),
+                          m(
+                            "option",
+                            { value: "FEN+UCCIMOVE" },
+                            "Forsyth–Edwards Notation (Fairy-Stockfish) and UCCI (CECP) Moves (FEN+UCCIMOVE)",
+                          ),
+                          m(
+                            "option",
+                            { value: "SFEN+USIMOVE" },
+                            "Shogi Forsyth–Edwards Notation and USI Moves (SFEN+USIMOVE)",
+                          ),
+                        ],
+                      ),
+                    ]),
+                    m("div.setting", [
+                      m("span", "Coordinates"),
+                      m(
+                        "select#boardcoordinate.sm",
+                        {
+                          title:
+                            "Choose the coordinate system for the chess board.",
+                          onchange: () => {
+                            localStorage.setItem(
+                              "BoardCoordinate",
+                              document.getElementById("boardcoordinate")
+                                .selectedIndex,
+                            );
+                          },
+                        },
+                        [
+                          m(
+                            "option",
+                            {
+                              value: "ALGEBRAIC",
+                              title:
+                                "English letters on bottom, Arabic numbers on side.",
+                            },
+                            "Chess Letter-Algebraic (ALGEBRAIC)",
+                          ),
+                          m(
+                            "option",
+                            {
+                              value: "SHOGI_ENGLET",
+                              title:
+                                "Arabic numbers on top, English letters on side.",
+                            },
+                            "Shogi Algebraic-Letter (SHOGI_ENGLET)",
+                          ),
+                          m(
+                            "option",
+                            {
+                              value: "SHOGI_ARBNUM",
+                              title: "Arabic numbers on top and side.",
+                            },
+                            "Shogi Algebraic (SHOGI_ARBNUM)",
+                          ),
+                          m(
+                            "option",
+                            {
+                              value: "SHOGI_HANNUM",
+                              title:
+                                "Arabic numbers on top, Kanji numbers on side.",
+                            },
+                            "Shogi Algebraic-Kanji (SHOGI_HANNUM)",
+                          ),
+                          m(
+                            "option",
+                            {
+                              value: "JANGGI",
+                              title:
+                                "Arabic numbers on bottom and side, with 0 denoting 10th rank.",
+                            },
+                            "Janggi Algebraic (JANGGI)",
+                          ),
+                          m(
+                            "option",
+                            {
+                              value: "XIANGQI_ARBNUM",
+                              title: "Arabic numbers on top and bottom.",
+                            },
+                            "Xiangqi Algebraic (XIANGQI_ARBNUM)",
+                          ),
+                          m(
+                            "option",
+                            {
+                              value: "XIANGQI_HANNUM",
+                              title:
+                                "Arabic numbers on top, Hanzi numbers on bottom.",
+                            },
+                            "Xiangqi Algebraic-Hanzi (XIANGQI_HANNUM)",
+                          ),
+                          m(
+                            "option",
+                            {
+                              value: "THAI_ALGEBRAIC",
+                              title:
+                                "Thai letters on bottom, Thai numbers on side.",
+                            },
+                            "Makruk Thai Letter-Thai Algebraic (THAI_ALGEBRAIC)",
+                          ),
+                        ],
+                      ),
+                    ]),
                     m(
-                      "select#boardcoordinate.sm",
-                      {
-                        title:
-                          "Choose the coordinate system for the chess board.",
-                      },
-                      [
-                        m(
-                          "option",
-                          {
-                            value: "ALGEBRAIC",
-                            title:
-                              "English letters on bottom, Arabic numbers on side.",
-                          },
-                          "Chess Letter-Algebraic (ALGEBRAIC)",
-                        ),
-                        m(
-                          "option",
-                          {
-                            value: "SHOGI_ENGLET",
-                            title:
-                              "Arabic numbers on top, English letters on side.",
-                          },
-                          "Shogi Algebraic-Letter (SHOGI_ENGLET)",
-                        ),
-                        m(
-                          "option",
-                          {
-                            value: "SHOGI_ARBNUM",
-                            title: "Arabic numbers on top and side.",
-                          },
-                          "Shogi Algebraic (SHOGI_ARBNUM)",
-                        ),
-                        m(
-                          "option",
-                          {
-                            value: "SHOGI_HANNUM",
-                            title:
-                              "Arabic numbers on top, Kanji numbers on side.",
-                          },
-                          "Shogi Algebraic-Kanji (SHOGI_HANNUM)",
-                        ),
-                        m(
-                          "option",
-                          {
-                            value: "JANGGI",
-                            title:
-                              "Arabic numbers on bottom and side, with 0 denoting 10th rank.",
-                          },
-                          "Janggi Algebraic (JANGGI)",
-                        ),
-                        m(
-                          "option",
-                          {
-                            value: "XIANGQI_ARBNUM",
-                            title: "Arabic numbers on top and bottom.",
-                          },
-                          "Xiangqi Algebraic (XIANGQI_ARBNUM)",
-                        ),
-                        m(
-                          "option",
-                          {
-                            value: "XIANGQI_HANNUM",
-                            title:
-                              "Arabic numbers on top, Hanzi numbers on bottom.",
-                          },
-                          "Xiangqi Algebraic-Hanzi (XIANGQI_HANNUM)",
-                        ),
-                        m(
-                          "option",
-                          {
-                            value: "THAI_ALGEBRAIC",
-                            title:
-                              "Thai letters on bottom, Thai numbers on side.",
-                          },
-                          "Makruk Thai Letter-Thai Algebraic (THAI_ALGEBRAIC)",
-                        ),
-                      ],
-                    ),
-                  ]),
-                  m("div.setting", [
-                    m(
-                      "span",
+                      "div.setting",
                       {
                         title:
                           "When checked, the board coordinates are shown inside of the board. Otherwise they are outside of the board.",
                       },
-                      "Inner board coordinates",
+                      [
+                        m(
+                          "span",
+
+                          "Inner board coordinates",
+                        ),
+                        m("input[type=checkbox]#check-innercoordinate", {
+                          disabled: !is_ready,
+                          onclick: () => {
+                            if (
+                              document.getElementById("check-innercoordinate")
+                                .checked
+                            ) {
+                              document
+                                .getElementById("chessground-container-div")
+                                .classList.add("inner");
+                            } else {
+                              document
+                                .getElementById("chessground-container-div")
+                                .classList.remove("inner");
+                            }
+                            localStorage.setItem(
+                              "InnerCoordinate",
+                              document.getElementById("check-innercoordinate")
+                                .checked,
+                            );
+                          },
+                        }),
+                      ],
                     ),
-                    m("input[type=checkbox]#check-innercoordinate", {
-                      disabled: !is_ready,
-                      onclick: () => {
-                        if (
-                          document.getElementById("check-innercoordinate")
-                            .checked
-                        ) {
-                          document
-                            .getElementById("chessground-container-div")
-                            .classList.add("inner");
-                        } else {
-                          document
-                            .getElementById("chessground-container-div")
-                            .classList.remove("inner");
-                        }
-                      },
-                    }),
-                  ]),
-                  m("div.setting", [
                     m(
-                      "span",
+                      "div.setting",
                       {
                         title:
                           "When checked, the legal moves of the selected piece are shown on the board.",
                       },
-                      "Show legal moves & drops",
+                      [
+                        m(
+                          "span",
+
+                          "Show legal moves & drops",
+                        ),
+                        m("input[type=checkbox]#check-dests", {
+                          checked: show_dests,
+                          onclick: () => {
+                            show_dests = !show_dests;
+                            localStorage.setItem(
+                              "ShowDestinations",
+                              show_dests,
+                            );
+                          },
+                        }),
+                      ],
                     ),
-                    m("input[type=checkbox]#check-dests", {
-                      checked: show_dests,
-                      onclick: () => {
-                        show_dests = !show_dests;
-                      },
-                    }),
-                  ]),
-                  m("div.setting", [
                     m(
-                      "span",
+                      "div.setting",
                       {
                         title:
                           "(Legacy) When checked, show the game result in PGN.",
                       },
-                      "Adjudicate (show result in PGN)",
-                    ),
-                    m("input[type=checkbox]#check-adjudicate", {
-                      checked: adjudicate,
-                      onclick: () => {
-                        adjudicate = !adjudicate;
-                      },
-                    }),
-                  ]),
-                  m("div.setting", [
-                    m("span", "Sound volume"),
-                    m(
-                      "input[type=range]#range-volume",
-                      {
-                        min: 0,
-                        max: 1,
-                        step: 0.05,
-                        title: "Adjust sound volume here.",
-                      },
-                      "range",
-                    ),
-                  ]),
-                ]),
-              ]),
+                      [
+                        m(
+                          "span",
 
-              m("div.stack", [
-                m("div#input3.subsection", { hidden: during_play }, [
-                  m("span.sect", "Game options"),
-                  m(
-                    "label#label-isfischerrandommode.toggle",
-                    {
-                      title:
-                        "When checked, enable fischer random (chess960) mode, which enables fischer random castling rules. This has no effect to variants that do not have castling.",
-                    },
-                    [
-                      m("input[type=checkbox]#isfischerrandommode", {
-                        checked: fischer_random_mode,
-                        disabled:
-                          !is_ready ||
-                          during_engine_match ||
-                          during_play ||
-                          review_mode ||
-                          board_setup_mode,
-                        onclick: () => {
-                          fischer_random_mode = !fischer_random_mode;
-                          document
-                            .getElementById("dropdown-variant")
-                            .dispatchEvent(new Event("change"));
-                        },
-                      }),
-                      m("span", "Fischer random start position"),
-                    ],
-                  ),
-                  m(
-                    "label#label-advpgnmode.toggle",
-                    {
-                      title:
-                        "(Experimental) When checked, a mini board is shown which displays the position at that time when you click the move in the move list (PV line or move history), and the PGN editing tools are shown in the Moves tab. Uncheck to exit this mode. Note that enabling this mode might make the page become slower, and only enable it if you need it as it's an experimental feature.",
-                    },
-                    [
-                      m("input[type=checkbox]#isadvpgnmode", {
-                        checked: advanced_pgn_mode,
-                        disabled: !is_ready,
-                        onclick: () => {
-                          advanced_pgn_mode = !advanced_pgn_mode;
-                        },
-                      }),
+                          "Adjudicate (show result in PGN)",
+                        ),
+                        m("input[type=checkbox]#check-adjudicate", {
+                          checked: adjudicate,
+                          onclick: () => {
+                            adjudicate = !adjudicate;
+                            localStorage.setItem(
+                              "ShowAdjudication",
+                              adjudicate,
+                            );
+                          },
+                        }),
+                      ],
+                    ),
+                    m(
+                      "div.setting",
+                      {
+                        title:
+                          'When checked, engine analysis parameters and timer settings in "New Game" will use integer input boxes instead of sliders for better granularity.',
+                      },
+                      [
+                        m(
+                          "span",
+
+                          "Integer input for engine / timer parameters",
+                        ),
+                        m("input[type=checkbox]#check-granularity", {
+                          checked: use_integer_inputs,
+                          onclick: () => {
+                            use_integer_inputs = !use_integer_inputs;
+                            localStorage.setItem(
+                              "UseIntegerInput",
+                              use_integer_inputs,
+                            );
+                          },
+                        }),
+                      ],
+                    ),
+                    m(
+                      "div.setting",
+                      {
+                        title:
+                          "When checked, contents in move list panel are clickable instead of being plain text, and a mini board is shown which displays the position at that time when you click the move in the move list (PV line or move history). Meanwhile the PGN editing tools are shown in the Moves tab. Note that enabling this mode might make the page become slower.",
+                      },
+                      [
+                        m(
+                          "span",
+
+                          "Move visualization & PGN tools",
+                        ),
+                        m("input[type=checkbox]#isadvpgnmode", {
+                          checked: advanced_pgn_mode,
+                          disabled: !is_ready,
+                          onclick: () => {
+                            advanced_pgn_mode = !advanced_pgn_mode;
+                            localStorage.setItem(
+                              "AdvancedPGNMode",
+                              advanced_pgn_mode,
+                            );
+                          },
+                        }),
+                      ],
+                    ),
+                    m(
+                      "div.setting",
+                      {
+                        title:
+                          "If you cannot make your move on the board, you can open this dialog to make the move.",
+                      },
+                      [
+                        m(
+                          "span",
+
+                          "Show moves dialog",
+                        ),
+                        m("input[type=checkbox]#showmovediv", {
+                          checked: select_move_dialog,
+                          disabled: review_mode || board_setup_mode,
+                          onclick: () => {
+                            select_move_dialog = !select_move_dialog;
+                            localStorage.setItem(
+                              "ShowMovesDialog",
+                              select_move_dialog,
+                            );
+                          },
+                        }),
+                      ],
+                    ),
+                    m("div.setting", [
+                      m("span", "Sound volume"),
                       m(
-                        "span",
-                        "Move visualization & PGN tools (experimental)",
+                        "input[type=range]#range-volume",
+                        {
+                          min: 0,
+                          max: 1,
+                          step: 0.05,
+                          title: "Adjust sound volume here.",
+                          onchange: () => {
+                            localStorage.setItem(
+                              "SoundVolume",
+                              document.getElementById("range-volume").value,
+                            );
+                          },
+                        },
+                        "range",
                       ),
-                    ],
-                  ),
-                ]),
-                ,
-                m("div#gamesettings", [
-                  m("div.field", [
-                    m("span.label", "Move input"),
-                    m(
-                      "select#moveinput",
-                      {
-                        disabled: review_mode,
-                        title:
-                          "How pieces are moved: by dragging, by clicking the piece and then the target square, or either.",
-                        onchange: (e) => {
-                          move_input = e.target.value;
-                          const clickbox =
-                            document.getElementById("clickclickmove");
-                          const dragbox = document.getElementById("dragmove");
-                          clickbox.checked = move_input != "drag";
-                          dragbox.checked = move_input != "click";
-                          clickbox.dispatchEvent(new Event("change"));
-                          dragbox.dispatchEvent(new Event("change"));
-                        },
-                      },
-                      [
-                        m(
-                          "option",
-                          { value: "either", selected: move_input == "either" },
-                          "Either",
-                        ),
-                        m(
-                          "option",
-                          { value: "click", selected: move_input == "click" },
-                          "Click two squares",
-                        ),
-                        m(
-                          "option",
-                          { value: "drag", selected: move_input == "drag" },
-                          "Drag",
-                        ),
-                      ],
-                    ),
-                    m("input[type=checkbox]#clickclickmove", {
-                      hidden: true,
-                      checked: move_input != "drag",
-                    }),
-                    m("input[type=checkbox]#dragmove", {
-                      hidden: true,
-                      checked: move_input != "click",
-                    }),
-                  ]),
-                  m("div.row", [
-                    m("label#label-showmovediv.toggle", [
-                      m("input[type=checkbox]#showmovediv", {
-                        checked: select_move_dialog,
-                        disabled: review_mode || board_setup_mode,
-                        onclick: () => {
-                          select_move_dialog = !select_move_dialog;
-                        },
-                      }),
-                      m("span", "Show moves dialog"),
                     ]),
-                    helpButton(
-                      "If you cannot make your move on the board (For example, ATAXX drops), you can open this dialog to make the move.",
-                    ),
                   ]),
-                  m("div.field", [
-                    m("span.label", "Quick promote / demote"),
+                ]),
+
+                m("div.stack", [
+                  m("div#input3.subsection", { hidden: during_play }, [
+                    m("span.sect", "Game options"),
                     m(
-                      "select#dropdown-quickpromotion",
+                      "div.setting",
                       {
-                        disabled: !is_ready || review_mode || board_setup_mode,
                         title:
-                          "Select an option to make the promotion or demotion automatically if available.",
+                          "When checked, enable fischer random (chess960) mode, which enables fischer random castling rules. This has no effect to variants that do not have castling.",
                       },
                       [
-                        m("option", { value: "" }, "<DISABLED>"),
-                        m("option", { value: "a" }, "a"),
-                        m("option", { value: "b" }, "b"),
-                        m("option", { value: "c" }, "c"),
-                        m("option", { value: "d" }, "d"),
-                        m("option", { value: "e" }, "e"),
-                        m("option", { value: "f" }, "f"),
-                        m("option", { value: "g" }, "g"),
-                        m("option", { value: "h" }, "h"),
-                        m("option", { value: "i" }, "i"),
-                        m("option", { value: "j" }, "j"),
-                        m("option", { value: "k" }, "k"),
-                        m("option", { value: "l" }, "l"),
-                        m("option", { value: "m" }, "m"),
-                        m("option", { value: "n" }, "n"),
-                        m("option", { value: "o" }, "o"),
-                        m("option", { value: "p" }, "p"),
-                        m("option", { value: "q" }, "q"),
-                        m("option", { value: "r" }, "r"),
-                        m("option", { value: "s" }, "s"),
-                        m("option", { value: "t" }, "t"),
-                        m("option", { value: "u" }, "u"),
-                        m("option", { value: "v" }, "v"),
-                        m("option", { value: "w" }, "w"),
-                        m("option", { value: "x" }, "x"),
-                        m("option", { value: "y" }, "y"),
-                        m("option", { value: "z" }, "z"),
-                        m("option", { value: "+" }, "Promote (+)"),
-                        m("option", { value: "-" }, "Demote (-)"),
-                        m("option", { value: "=" }, "Keep (=)"),
+                        m("span", "Fischer random start position"),
+                        m("input[type=checkbox]#isfischerrandommode", {
+                          checked: fischer_random_mode,
+                          disabled:
+                            !is_ready ||
+                            during_engine_match ||
+                            during_play ||
+                            review_mode ||
+                            board_setup_mode,
+                          onclick: () => {
+                            fischer_random_mode = !fischer_random_mode;
+                            document
+                              .getElementById("dropdown-variant")
+                              .dispatchEvent(new Event("change"));
+                          },
+                        }),
                       ],
                     ),
                   ]),
-                  m("p.hint.fullrow", [
-                    m(
-                      "span.help",
-                      {
-                        onclick: () =>
-                          window.alert(
-                            "A null move is considered as a move that have the same original square and destination square. Double click a square (No matter whether it's empty or not) will make a null move on that square.\nNote:\n1. In most cases passing a turn is equivalent to making a null move on the king.\n2. In Atlantis variant, placing a wall without moving any piece requires to make a null move on the most bottom then the most left piece of your color.\n3. Click <show moves dialog> to see all legal moves if you are not sure how to make a move.",
+                  ,
+                  m("span.sect", "Board options"),
+                  m("div#gamesettings", [
+                    m("div.field", [
+                      m("span.label", "Move input mode"),
+                      m(
+                        "select#moveinput",
+                        {
+                          disabled: review_mode,
+                          title:
+                            "How pieces are moved: by dragging, by clicking the piece and then the target square, or either.",
+                          onchange: (e) => {
+                            move_input = e.target.value;
+                            const clickbox =
+                              document.getElementById("clickclickmove");
+                            const dragbox = document.getElementById("dragmove");
+                            clickbox.checked = move_input != "drag";
+                            dragbox.checked = move_input != "click";
+                            clickbox.dispatchEvent(new Event("change"));
+                            dragbox.dispatchEvent(new Event("change"));
+                          },
+                        },
+                        [
+                          m(
+                            "option",
+                            {
+                              value: "either",
+                              selected: move_input == "either",
+                            },
+                            "Either",
                           ),
-                      },
-                      "How to make null moves?",
-                    ),
+                          m(
+                            "option",
+                            { value: "click", selected: move_input == "click" },
+                            "Click two squares",
+                          ),
+                          m(
+                            "option",
+                            { value: "drag", selected: move_input == "drag" },
+                            "Drag",
+                          ),
+                        ],
+                      ),
+                      m("input[type=checkbox]#clickclickmove", {
+                        hidden: true,
+                        checked: move_input != "drag",
+                      }),
+                      m("input[type=checkbox]#dragmove", {
+                        hidden: true,
+                        checked: move_input != "click",
+                      }),
+                    ]),
+                    m("div.field", [
+                      m("span.label", "Quick promote / demote"),
+                      m(
+                        "select#dropdown-quickpromotion",
+                        {
+                          disabled:
+                            !is_ready || review_mode || board_setup_mode,
+                          title:
+                            "Select an option to make the promotion or demotion automatically if available.",
+                        },
+                        [
+                          m("option", { value: "" }, "<DISABLED>"),
+                          m("option", { value: "a" }, "To piece a"),
+                          m("option", { value: "b" }, "To piece b"),
+                          m("option", { value: "c" }, "To piece c"),
+                          m("option", { value: "d" }, "To piece d"),
+                          m("option", { value: "e" }, "To piece e"),
+                          m("option", { value: "f" }, "To piece f"),
+                          m("option", { value: "g" }, "To piece g"),
+                          m("option", { value: "h" }, "To piece h"),
+                          m("option", { value: "i" }, "To piece i"),
+                          m("option", { value: "j" }, "To piece j"),
+                          m("option", { value: "k" }, "To piece k"),
+                          m("option", { value: "l" }, "To piece l"),
+                          m("option", { value: "m" }, "To piece m"),
+                          m("option", { value: "n" }, "To piece n"),
+                          m("option", { value: "o" }, "To piece o"),
+                          m("option", { value: "p" }, "To piece p"),
+                          m("option", { value: "q" }, "To piece q"),
+                          m("option", { value: "r" }, "To piece r"),
+                          m("option", { value: "s" }, "To piece s"),
+                          m("option", { value: "t" }, "To piece t"),
+                          m("option", { value: "u" }, "To piece u"),
+                          m("option", { value: "v" }, "To piece v"),
+                          m("option", { value: "w" }, "To piece w"),
+                          m("option", { value: "x" }, "To piece x"),
+                          m("option", { value: "y" }, "To piece y"),
+                          m("option", { value: "z" }, "To piece z"),
+                          m("option", { value: "+" }, "Promote (+)"),
+                          m("option", { value: "-" }, "Demote (-)"),
+                          m("option", { value: "=" }, "Keep (=)"),
+                        ],
+                      ),
+                    ]),
+                    m("p.hint.fullrow", [
+                      m(
+                        "span.help",
+                        {
+                          onclick: () =>
+                            window.alert(
+                              "A null move is considered as a move that have the same original square and destination square. Double click a square (No matter whether it's empty or not) will make a null move on that square.\nNote:\n1. In most cases passing a turn is equivalent to making a null move on the king.\n2. In Atlantis variant, placing a wall without moving any piece requires to make a null move on the most bottom then the most left piece of your color.\n3. Click <show moves dialog> to see all legal moves if you are not sure how to make a move.",
+                            ),
+                        },
+                        "How to make null moves?",
+                      ),
+                    ]),
+                  ]),
+                  m("div#visualeffects", [
+                    m("div.field", [
+                      m("span.label", "Visual effect"),
+                      m(
+                        "select#dropdown-visualeffect",
+                        {
+                          disabled: !is_ready || board_setup_mode,
+                          title:
+                            "A visual effect is a change on the visibility of the board. Usually it's restricting piece visibility.",
+                        },
+                        [
+                          m(
+                            "option",
+                            {
+                              value: "<DISABLED>",
+                              title:
+                                "No visual effect. The board is shown as is.",
+                            },
+                            "<DISABLED>",
+                          ),
+                          m(
+                            "option",
+                            {
+                              value: "fogofwar",
+                              title:
+                                "Fog of war is a visual effect that can prevent a player from seeing unreachable squares except wall squares.",
+                            },
+                            "Fog Of War",
+                          ),
+                          m(
+                            "option",
+                            {
+                              value: "wargame",
+                              title:
+                                "War game is a visual effect that can prevent a player from seeing opponent's pieces",
+                            },
+                            "War Game",
+                          ),
+                        ],
+                      ),
+                    ]),
+                    m("div.field", [
+                      m("span.label", "Effect Perspective"),
+                      m(
+                        "select#dropdown-visualeffectperspective",
+                        {
+                          disabled: !is_ready || board_setup_mode,
+                          title: "Choose the perspective of visual effect.",
+                        },
+                        [
+                          m(
+                            "option",
+                            {
+                              value: "white",
+                              title: "See the board at white's perspective.",
+                            },
+                            "White's View",
+                          ),
+                          m(
+                            "option",
+                            {
+                              value: "black",
+                              title: "See the board at black's perspective.",
+                            },
+                            "Black's View",
+                          ),
+                          m(
+                            "option",
+                            {
+                              value: "alternate",
+                              title:
+                                "See the board at current mover's perspective.",
+                            },
+                            "View Alternately",
+                          ),
+                        ],
+                      ),
+                    ]),
+                  ]),
+                  ,
+                ]),
+                m("div.hr"),
+                m("div#pageheader"),
+                m("div#misc", { hidden: during_play }, [
+                  m("span.sect", "Custom data files"),
+                  m("div", { hidden: during_play }, [
+                    m("span.filename", [
+                      "variants.ini ",
+                      helpButton(
+                        "You can upload a Fairy-Stockfish compatible variants.ini file. See here for details: https://github.com/fairy-stockfish/Fairy-Stockfish/wiki/Variant-configuration.",
+                      ),
+                    ]),
+                    m("input#variants-ini", {
+                      type: "file",
+                      disabled: !is_ready || review_mode || board_setup_mode,
+                      onchange: onSelectVariantsFile,
+                    }),
+                  ]),
+                  m("div", { hidden: during_play }, [
+                    m("span.filename", [
+                      "positionvariants.txt ",
+                      helpButton(
+                        "You can select a Position Variant file to load different positions for different variants. Contents will be appended to the position variants provided by the server.",
+                      ),
+                    ]),
+                    m("input#posvariant-txt", {
+                      type: "file",
+                      disabled: !is_ready || review_mode || board_setup_mode,
+                    }),
+                  ]),
+                  m("div", { hidden: during_play }, [
+                    m("span.filename", [
+                      "User piece graphics ",
+                      helpButton(
+                        "You can upload user defined piece graphics. They must be named as follows [piece colour][+][piece letter].svg.",
+                      ),
+                    ]),
+                    m("input#user-graphics", {
+                      type: "file",
+                      multiple: true,
+                      disabled: !is_ready || review_mode || board_setup_mode,
+                      onchange: onSelectUserGraphics,
+                    }),
+                  ]),
+                  m("div", { hidden: during_play }, [
+                    m("span.filename", [
+                      "variantsettings.txt ",
+                      helpButton(
+                        "You can upload a Variant Settings file to load settings for the variants including classification, names and descriptions. Contents will be appended to the variant descriptions provided by the server.",
+                      ),
+                    ]),
+                    m("input#variantsettings-txt", {
+                      type: "file",
+                      disabled: !is_ready || review_mode || board_setup_mode,
+                      onchange: onSelectVariantSettings,
+                    }),
                   ]),
                 ]),
-                ,
-                m("span.sect", "Visual effect"),
-                m("div#visualeffects", [
-                  m("div.field", [
-                    m("span.label", "Effect"),
+                m("div.hr"),
+                m("div.stack", [
+                  m("span.sect", "App"),
+                  m("div.setting", [
+                    m("span", "Install fairyground as an app"),
                     m(
-                      "select#dropdown-visualeffect",
+                      "button#installapp.sm.soft",
                       {
-                        disabled: !is_ready || board_setup_mode,
-                        title:
-                          "A visual effect is a change on the visibility of the board. Usually it's restricting piece visibility.",
+                        type: "button",
+                        hidden: !window.fairygroundInstallPrompt,
+                        onclick: () => {
+                          const prompt = window.fairygroundInstallPrompt;
+                          if (prompt) {
+                            prompt.prompt();
+                            prompt.userChoice.finally(() => {
+                              window.fairygroundInstallPrompt = null;
+                            });
+                          }
+                        },
                       },
-                      [
-                        m(
-                          "option",
-                          {
-                            value: "<DISABLED>",
-                            title:
-                              "No visual effect. The board is shown as is.",
-                          },
-                          "<DISABLED>",
-                        ),
-                        m(
-                          "option",
-                          {
-                            value: "fogofwar",
-                            title:
-                              "Fog of war is a visual effect that can prevent a player from seeing unreachable squares except wall squares.",
-                          },
-                          "Fog Of War",
-                        ),
-                        m(
-                          "option",
-                          {
-                            value: "wargame",
-                            title:
-                              "War game is a visual effect that can prevent a player from seeing opponent's pieces",
-                          },
-                          "War Game",
-                        ),
-                      ],
+                      [icon("install", 14), "Install"],
                     ),
-                  ]),
-                  m("div.field", [
-                    m("span.label", "Perspective"),
                     m(
-                      "select#dropdown-visualeffectperspective",
-                      {
-                        disabled: !is_ready || board_setup_mode,
-                        title: "Choose the perspective of visual effect.",
-                      },
-                      [
-                        m(
-                          "option",
-                          {
-                            value: "white",
-                            title: "See the board at white's perspective.",
-                          },
-                          "White's View",
-                        ),
-                        m(
-                          "option",
-                          {
-                            value: "black",
-                            title: "See the board at black's perspective.",
-                          },
-                          "Black's View",
-                        ),
-                        m(
-                          "option",
-                          {
-                            value: "alternate",
-                            title:
-                              "See the board at current mover's perspective.",
-                          },
-                          "View Alternately",
-                        ),
-                      ],
+                      "span.hint",
+                      { hidden: !!window.fairygroundInstallPrompt },
+                      'Use your browser\'s "Install app" or "Add to home screen" option.',
                     ),
                   ]),
-                ]),
-                ,
-              ]),
-              m("div.hr"),
-              m("div#pageheader"),
-              m("div#misc", { hidden: during_play }, [
-                m("span.sect", "Custom data files"),
-                m("div", { hidden: during_play }, [
-                  m("span.filename", [
-                    "variants.ini ",
-                    helpButton(
-                      "You can upload a Fairy-Stockfish compatible variants.ini file. See here for details: https://github.com/fairy-stockfish/Fairy-Stockfish/wiki/Variant-configuration.",
-                    ),
-                  ]),
-                  m("input#variants-ini", {
-                    type: "file",
-                    disabled: !is_ready || review_mode || board_setup_mode,
-                    onchange: onSelectVariantsFile,
-                  }),
-                ]),
-                m("div", { hidden: during_play }, [
-                  m("span.filename", [
-                    "positionvariants.txt ",
-                    helpButton(
-                      "You can select a Position Variant file to load different positions for different variants. Contents will be appended to the position variants provided by the server.",
-                    ),
-                  ]),
-                  m("input#posvariant-txt", {
-                    type: "file",
-                    disabled: !is_ready || review_mode || board_setup_mode,
-                  }),
-                ]),
-                m("div", { hidden: during_play }, [
-                  m("span.filename", [
-                    "User piece graphics ",
-                    helpButton(
-                      "You can upload user defined piece graphics. They must be named as follows [piece colour][+][piece letter].svg.",
-                    ),
-                  ]),
-                  m("input#user-graphics", {
-                    type: "file",
-                    multiple: true,
-                    disabled: !is_ready || review_mode || board_setup_mode,
-                    onchange: onSelectUserGraphics,
-                  }),
-                ]),
-                m("div", { hidden: during_play }, [
-                  m("span.filename", [
-                    "variantsettings.txt ",
-                    helpButton(
-                      "You can upload a Variant Settings file to load settings for the variants including classification, names and descriptions. Contents will be appended to the variant descriptions provided by the server.",
-                    ),
-                  ]),
-                  m("input#variantsettings-txt", {
-                    type: "file",
-                    disabled: !is_ready || review_mode || board_setup_mode,
-                    onchange: onSelectVariantSettings,
-                  }),
                 ]),
               ]),
-              m("div.hr"),
-              m("div.stack", [
-                m("span.sect", "App"),
-                m("div.setting", [
-                  m("span", "Install fairyground as an app"),
-                  m(
-                    "button#installapp.sm.soft",
-                    {
-                      type: "button",
-                      hidden: !window.fairygroundInstallPrompt,
-                      onclick: () => {
-                        const prompt = window.fairygroundInstallPrompt;
-                        if (prompt) {
-                          prompt.prompt();
-                          prompt.userChoice.finally(() => {
-                            window.fairygroundInstallPrompt = null;
-                          });
-                        }
-                      },
-                    },
-                    [icon("install", 14), "Install"],
-                  ),
-                  m(
-                    "span.hint",
-                    { hidden: !!window.fairygroundInstallPrompt },
-                    'Use your browser\'s "Install app" or "Add to home screen" option.',
-                  ),
-                ]),
-              ]),
-            ]),
-          ]);
+            ],
+          );
 
           return m("main.app", { class: "mode-" + app_mode }, [
             topbar,
@@ -10406,20 +11172,35 @@
             m("div#moveselectiondialog", { hidden: !select_move_dialog }, [
               m("div#moveslectdiv", [
                 m("p", "Moves"),
-                m("select#availablemovelist.sm", [
-                  m("option", { value: "" }, "--SELECT MOVE--"),
-                ]),
+                m(
+                  "select#availablemovelist.sm",
+                  { title: "Select search result here." },
+                  [m("option", { value: "" }, "--SELECT MOVE--")],
+                ),
                 m("input[type=text]#movesearchfilter", {
                   placeholder: "Search UCI move...",
                   maxlength: 9999,
+                  title:
+                    "Input the UCI move string or part of it that you want to search.",
                 }),
-                m("label#label-regexp1.toggle", [
-                  m("input[type=checkbox]#regexp1.box", {
-                    disabled: review_mode || board_setup_mode,
-                  }),
-                  m("span", "Regular Expression"),
-                ]),
-                m("button#searchmove.sm", { type: "button" }, "Search Moves"),
+                m(
+                  "label#label-regexp1.toggle",
+                  { title: "Use regular expression to match moves." },
+                  [
+                    m("input[type=checkbox]#regexp1.box", {
+                      disabled: review_mode || board_setup_mode,
+                    }),
+                    m("span", "Regular Expression"),
+                  ],
+                ),
+                m(
+                  "button#searchmove.sm",
+                  {
+                    type: "button",
+                    title: "Click to search moves with search filters.",
+                  },
+                  "Search Moves",
+                ),
               ]),
               m("div#movefilters", [
                 m("p#searchresultinfo", "Click <Search Moves> to search!"),
@@ -10471,13 +11252,31 @@
                 m("div.row", [
                   m(
                     "button#makemove.sm.primary",
-                    { type: "button" },
+                    {
+                      type: "button",
+                      title: "Make the selected move on the board.",
+                    },
                     "Make Move",
                   ),
                   m(
                     "button#highlightmove.sm",
-                    { type: "button" },
+                    {
+                      type: "button",
+                      title:
+                        "Highlight the selected move on the board using yellow markers.",
+                    },
                     "Highlight Move (Yellow Marks)",
+                  ),
+                  m(
+                    "button#closemovedialog.sm",
+                    {
+                      type: "button",
+                      title: "Close move selection dialog.",
+                      onclick: () => {
+                        document.getElementById("showmovediv").click();
+                      },
+                    },
+                    "Close",
                   ),
                 ]),
               ]),
@@ -10552,9 +11351,10 @@
                     type: "button",
                     title:
                       "Click to move the position on mini board to main board for further investigation.",
-                    disabled: during_play || during_engine_match,
+                    disabled:
+                      during_play || during_engine_match || game_started,
                     onclick: () => {
-                      if (during_play || during_engine_match) {
+                      if (during_play || during_engine_match || game_started) {
                         return;
                       }
                       const chessgroundmini =
@@ -10982,9 +11782,29 @@
         return { oninit, view };
       };
 
-      if (!isSupported()) {
-        window.alert(
-          "Your browser is not supported. For more information, please take a look at https://github.com/hi-ogawa/Stockfish/wiki.",
+      const support_condition = isSupported();
+      if (!support_condition.supported) {
+        let query = new URLSearchParams();
+        query.append("title", "Browser Not Supported");
+        query.append(
+          "text",
+          "Your browser is not supported for the following reason(s):\n\n" +
+            support_condition.error_messages.join("\n\n") +
+            "\n\nRecommendations:\n1. Use up-to-date Chrome, Edge or Firefox browser to open this page.\n2. This webpage cannot be opened directly from file explorer. You need to set up a http server to access it.\n3. Make sure that you have set the following response headers on the http server:\nCross-Origin-Opener-Policy: same-origin\nCross-Origin-Embedder-Policy: require-corp",
+        );
+        let error_page_path = window.location.pathname;
+        if (error_page_path.endsWith("/")) {
+          error_page_path += "error.html";
+        } else {
+          error_page_path = error_page_path.replace("index.html", "");
+          if (error_page_path.endsWith("/")) {
+            error_page_path += "error.html";
+          } else {
+            error_page_path += "/error.html";
+          }
+        }
+        window.location.replace(
+          `${window.location.protocol}//${window.location.host}${error_page_path}?${query.toString()}`,
         );
       } else {
         m.mount($("#root"), App);

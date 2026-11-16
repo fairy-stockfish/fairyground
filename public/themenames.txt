@@ -12,6 +12,11 @@ cburnettletters|Cburnett Letters
 blindfold|Invisible (Blindfold)
 userdefined|User Defined Graphics
 
+portella2kanji|Portella 2-Kanji
+ryoko1kanji|Ryoko 1-Kanji
+wikim|Wikim
+x2dhanzi|X2D Hanzi
+
 blueboard|Blue
 greenboard|Green
 brownboard|Brown

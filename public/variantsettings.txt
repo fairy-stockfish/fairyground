@@ -125,7 +125,7 @@ gorogoroplus|Shogi Variants|Gorogoro+ Shogi|Gorogoro Shogi with an addtional lan
 torishogi|Shogi Variants|Tori Shogi|A confrontational 7×7 variant with unique pieces each named after different birds.|https://en.wikipedia.org/wiki/Tori_shogi
 shoshogi|Shogi Variants|Sho Shogi|A new piece called Drunk Elephant is introduced, which can promote to a new king. You can lose one of the 2 kings after the promotion.|https://en.wikipedia.org/wiki/Sho_shogi
 cannonshogi|Shogi Variants|Cannon Shogi|Shogi with Chinese and Korean cannons.|https://www.chessvariants.com/shogivariants.dir/cannonshogi.html
-yarishogi|Shogi Variants|Yari Shogi|Shogi with movement of the pieces changed on a 7×9 board. See the wiki in <Variant INFO> for more details.|https://en.wikipedia.org/wiki/Yari_shogi
+yarishogi|Shogi Variants|Yari Shogi|Shogi with movement of the pieces changed on a 7×9 board, which mainly gives pieces the ability to move any number of free squares orthogonally.|https://en.wikipedia.org/wiki/Yari_shogi
 okisakishogi|Shogi Variants|Okisaki Shogi|Shogi where Queens (Q) are added and the Shogi Knights (fN) are replaced with Chess Knights (N) on a 10×10 board.|https://en.wikipedia.org/wiki/Okisaki_shogi
 micro|Shogi Variants|Micro Shogi|Shogi on a 4×4 board where pieces promote on capture and can be dropped in their promoted form.|https://en.wikipedia.org/wiki/Micro_shogi
 euroshogi|Shogi Variants|Euro Shogi|Shogi on a 8×8 board where knights can also move sideways.|https://en.wikipedia.org/wiki/EuroShogi
@@ -146,6 +146,7 @@ janggicasual|Janggi Variants|Janggi Casual|Korean Chess, similar to Xiangqi but 
 janggimodern|Janggi Variants|Janggi Modern|Korean Chess, similar to Xiangqi but plays much differently. Modern rules are used.|
 janggitraditional|Janggi Variants|Janggi Traditional|Korean Chess, similar to Xiangqi but plays much differently. Traditional rules are used.|
 janggihouse|Janggi Variants|Janggi House|Hybrid variant of janggi and crazyhouse. Tournament rules are used.|
+elgam|Janggi Variants|Elgam|Janggi based variant with drops and extra pieces on a 10×10 board.|https://www.reddit.com/r/chessvariants/comments/1riode4/introducing_elgam/
 
 # Fairy Variants: Variants that have special piece moves and the goal is to checkmate opponent's king. Standard chess and regional variants (e.g. Shogi, Xiangqi, Janggi, Makruk) are not in this classification
 capablanca|Fairy Variants|Capablanca Chess|Play with the hybrid pieces, archbishop (B+N) and chancellor (R+N), on a 10×8 board.|https://en.wikipedia.org/wiki/Capablanca_Chess
@@ -210,6 +211,8 @@ blackletter|Fairy Variants|Blackletter Chess|9×10 variant with Archbishop (B + 
 ajax-orthodox|Fairy Variants|Ajax Orthodox Chess|Bishops, Knights and Rook can also move (but not capture) like a king. Ajax-Minister (KAD) is introduced to the game which can be dropped at the back rank.|https://www.chessvariants.com/rules/ajax-orthodox-chess
 quasi-shatranj|Fairy Variants|4 Kings Quasi-Shatranj|Shatranj like game with short ranged pieces and 2 kings each side.|https://www.chessvariants.com/rules/4-kings-quasi-shatranj
 muje|Fairy Variants|Muje - Untitled|A variant that mixes the elements of Chess, Shogi and Xiangqi.|
+leaperhouse|Fairy Variants|Leaper House|A 10×10 drop variant consisting of only Leapers, Shogi pawns, and Kings.|
+mandala|Fairy Variants|Mandala|A 10×10 drop variant with Twin Leaper Kings, Leapers that can move 16 squares, and Shogi Pawns whose promotion is campmate.|
 
 # Asymmetric Variants: Two sides have different pieces and there is at least one non pawn piece that have moves different from standard chess and regional variants (e.g. Shogi, Xiangqi, Janggi, Makruk)
 orda|Asymmetric Variants|Orda Chess|Asymmetric variant where one army has pieces that move like knights but capture differently.|

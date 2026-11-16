@@ -2410,7 +2410,6 @@ function ShowEngineSetupUI(EngineList, EngineClass, DestructOnClose, ws) {
   let engineid = document.createElement("input");
   engineid.type = "text";
   engineid.maxLength = 9999;
-  engineid.style.border = "1px solid #ddd";
   engineid.style.width = "500px";
   iddiv.appendChild(engineidtext);
   iddiv.appendChild(engineid);
@@ -2423,7 +2422,6 @@ function ShowEngineSetupUI(EngineList, EngineClass, DestructOnClose, ws) {
   let enginepath = document.createElement("input");
   enginepath.type = "text";
   enginepath.maxLength = 9999;
-  enginepath.style.border = "1px solid #ddd";
   enginepath.style.width = "500px";
   pathdiv.appendChild(enginepathtext);
   pathdiv.appendChild(enginepath);
@@ -2436,7 +2434,6 @@ function ShowEngineSetupUI(EngineList, EngineClass, DestructOnClose, ws) {
   let enginewd = document.createElement("input");
   enginewd.type = "text";
   enginewd.maxLength = 9999;
-  enginewd.style.border = "1px solid #ddd";
   enginewd.style.width = "500px";
   enginewd.placeholder =
     "Leave blank to be the same with Executable Path directory";
@@ -2449,7 +2446,6 @@ function ShowEngineSetupUI(EngineList, EngineClass, DestructOnClose, ws) {
   let engineprotocoltext = document.createElement("p");
   engineprotocoltext.innerText = "Engine Protocol:";
   let engineprotocol = document.createElement("select");
-  engineprotocol.style.background = "#eee";
   engineprotocol.style.width = "400px";
   let option = document.createElement("option");
   option.text = "UCI (Universal Chess Interface)";
