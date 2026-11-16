@@ -993,6 +993,10 @@ button.favbtn.on {
   align-items: start;
 }
 
+.settings-ui {
+  z-index: 1001;
+}
+
 /* ---------- board column ---------- */
 
 .boardcol {
@@ -2313,6 +2317,12 @@ spangameresultmini {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.integer-inputs.timecontrol {
+  flex: 0 0 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 5px;
+}
+
 #whitetimesettings .sliderrow input,
 #blacktimesettings .sliderrow input {
   flex: none;
@@ -2661,6 +2671,10 @@ spangameresultmini {
 #setpositiontomainboard:before {
   color: #c99700;
   content: "\f002";
+}
+
+#setpositiontomainboard:disabled:before {
+  cursor: not-allowed;
 }
 
 #closeminiboard:before {
