@@ -2106,6 +2106,9 @@
           : localStorage.getItem("UserSelectedPieceTheme");
         let theme_str = stored_data || "{}";
         let parsed_json = {};
+        if (variant == "") {
+          return;
+        }
         try {
           parsed_json = JSON.parse(theme_str);
         } catch (e) {
@@ -3190,9 +3193,15 @@
                     white_byoyomi_time_per_period,
                   );
                 } else {
+                  if (clear_log) {
+                    engineoutput = "";
+                  }
                   stockfish.postMessage(`go ${args}`);
                 }
               } else {
+                if (clear_log) {
+                  engineoutput = "";
+                }
                 stockfish.postMessage(`go ${args}`);
               }
             } else if (stm == "white") {
@@ -3250,11 +3259,15 @@
                     //console.log("WHITE: go " + wargs);
                   }
                 } else if (!black_engine_ponder_and_human_white) {
-                  engineoutput = "";
+                  if (clear_log) {
+                    engineoutput = "";
+                  }
                   stockfish.postMessage(`go ${args}`);
                 }
               } else if (!black_engine_ponder_and_human_white) {
-                engineoutput = "";
+                if (clear_log) {
+                  engineoutput = "";
+                }
                 stockfish.postMessage(`go ${args}`);
               }
               if (fge.second_engine) {
@@ -3342,11 +3355,15 @@
                     //console.log("BLACK: go " + bargs);
                   }
                 } else if (!white_engine_ponder_and_human_black) {
-                  engineoutput = "";
+                  if (clear_log) {
+                    engineoutput = "";
+                  }
                   stockfish.postMessage(`go ${args}`);
                 }
               } else if (!white_engine_ponder_and_human_black) {
-                engineoutput = "";
+                if (clear_log) {
+                  engineoutput = "";
+                }
                 stockfish.postMessage(`go ${args}`);
               }
               if (fge.first_engine) {
@@ -3381,7 +3398,9 @@
               }
             }
           } else {
-            engineoutput = "";
+            if (clear_log) {
+              engineoutput = "";
+            }
             stockfish.postMessage(`go ${args}`);
           }
         };
@@ -6971,7 +6990,7 @@
                   "label#label-clearlogonstartthinking.toggle",
                   {
                     title:
-                      "When checked, automatically clear the console of the binary engine when it starts thinking.",
+                      "When checked, automatically clear the console of the engine that starts thinking.",
                   },
                   [
                     m("input[type=checkbox]#clearlogonstartthinking", {
